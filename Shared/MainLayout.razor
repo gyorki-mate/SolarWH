@@ -1,0 +1,66 @@
+﻿@inherits LayoutComponentBase
+@inject IJSRuntime JsRuntime
+@inject ElectronNET.API.WindowManager WindowManager
+<PageTitle>SolarWarehouse</PageTitle>
+    <MudThemeProvider/>
+    <MudDialogProvider/>
+    <MudSnackbarProvider/>
+<div class="page">
+
+    <div class="sidebar">
+        <NavMenu/>
+    </div>
+
+    <main>
+       
+        
+        <div class="top-row px-4">
+            <div style="-webkit-app-region: drag; display: block; height: 10vh; width: 100%"></div>
+            <MudButton OnClick="minimize">
+                <MudIcon Icon="@Icons.Filled.Minimize" Size="Size.Large"></MudIcon>
+            </MudButton>
+            
+            <MudButton OnClick="maximize">
+                 <MudIcon Icon="@Icons.Filled.Fullscreen" Size="Size.Large"></MudIcon>
+            </MudButton>
+            <MudButton OnClick="close">
+                <MudIcon Icon="@Icons.Filled.Close" Color="Color.Error" Size="Size.Large"></MudIcon>
+            </MudButton>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code
+{
+
+    void close()
+    {
+        if (WindowManager.BrowserWindows.Count > 0 )
+        {
+            WindowManager.BrowserWindows.First().Close();
+        }
+    }
+    void maximize()
+    {
+      
+        if (WindowManager.BrowserWindows.Count > 0)
+        {
+            WindowManager.BrowserWindows.First().Maximize();
+        }
+
+    }
+    
+
+    void minimize()
+    {
+        if (WindowManager.BrowserWindows.Count > 0)
+        {
+            WindowManager.BrowserWindows.First().Minimize();
+        }
+       
+    }
+}
