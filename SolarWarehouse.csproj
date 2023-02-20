@@ -6,8 +6,10 @@
     <RootNamespace>SWH</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
     <PackageReference Include="ElectronNET.API" Version="13.5.1" />
     <PackageReference Include="EntityFramework" Version="6.4.4" />
+    <PackageReference Include="MongoDB.Driver" Version="2.19.0" />
     <PackageReference Include="MudBlazor" Version="6.1.2" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.2" />
   </ItemGroup>

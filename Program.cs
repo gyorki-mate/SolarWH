@@ -1,20 +1,26 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using ElectronNET.API;
-using SWH.Data;
+using SWH.Models;
 using ElectronNET.API.Entities;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using MudBlazor.Services;
+using SWH.Controllers;
+using SWH.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddElectron();
 builder.WebHost.UseElectron(args);
 builder.Services.AddMudServices();
+builder.Services.AddScoped<IUser, UserController>();
+
+//FOR AUT/AUTH
+// builder.Services.AddBlazoredLocalStorage();
+// builder.Services.AddBlazoredSessionStorage();
 StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
 var app = builder.Build();
 
