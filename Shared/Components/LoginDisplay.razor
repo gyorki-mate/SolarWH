@@ -1,0 +1,107 @@
+﻿@inject NavigationManager uriHelper;
+@inject IDialogService DialogService
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+
+@if (isAuthenticated)
+{
+    <MudGrid Justify="Justify.FlexEnd" Spacing="3">
+       
+        <MudItem Class="justify-end">
+           <MudLink Color="Color.Info" Typo="Typo.h6" Href="/Profile">Current User: @Username</MudLink>
+        </MudItem>
+        <MudItem Class="justify-end">
+            <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="SignOut">Logout</MudButton>
+        </MudItem>
+    </MudGrid>
+}
+else
+{
+    <MudGrid Justify="Justify.FlexEnd">
+        <MudItem Class="justify-center">
+            <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="SignIn">Login</MudButton>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    
+    [Parameter]
+    public bool isAuthenticated { get; set; }
+    
+    [Parameter]
+    public int role { get; set; }
+
+    private string Username;
+
+    private string _role;
+
+
+    protected override async void OnInitialized()
+    {
+        if (await sessionStorage.ContainKeyAsync("Role"))
+        {
+            _role = await sessionStorage.GetItemAsync<string>("Role");
+            Username = await sessionStorage.GetItemAsync<string>("Username");
+            
+        }
+        if (!await localStorage.ContainKeyAsync("Role")) return;
+        _role = await localStorage.GetItemAsync<string>("Role");
+        Username = await localStorage.GetItemAsync<string>("Username");
+        Console.WriteLine(isAuthenticated);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        
+        if (await sessionStorage.ContainKeyAsync("Role"))
+        {
+            _role = await sessionStorage.GetItemAsync<string>("Role");
+            var tempUname = await sessionStorage.GetItemAsync<string>("UserName");
+            if(tempUname != Username)
+            {
+                Username = tempUname;
+                StateHasChanged();
+            }
+        }
+        if (await localStorage.ContainKeyAsync("Role"))
+        {
+            _role = await localStorage.GetItemAsync<string>("Role");
+            var tempUname = await localStorage.GetItemAsync<string>("UserName");
+            if(tempUname != Username)
+            {
+                Username = tempUname;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void SignIn()
+    {
+       DialogService.Show<LoginDialog>("Login");
+    }
+
+    private async void SignOut()
+    {
+        DialogParameters parameters = new() { { "_content", "Are you sure you want to logout? " } };
+
+        var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+        var res = await result.Result;
+        try
+        {
+            if (!res.Data.Equals(true)) return;
+            await sessionStorage.RemoveItemAsync("Role");
+            await sessionStorage.RemoveItemAsync("isAuthenticated");
+            
+            await localStorage.RemoveItemAsync("Role");
+            await  localStorage.RemoveItemAsync("isAuthenticated"); 
+            
+            uriHelper.NavigateTo("/",forceLoad:true);
+        }
+        catch (Exception e)
+        {
+          //ignored
+        }
+    }
+}

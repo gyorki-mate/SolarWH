@@ -24,5 +24,6 @@ public class DbContext
     //get collections
     // public IMongoCollection<Parts> NapelemRecord => _mongoDB.GetCollection<Parts>("Napelem");
     public IMongoCollection<User> UserRecord => _mongoDB.GetCollection<User>("User");
+    public IMongoCollection<Warehouse> WarehouseRecord => _mongoDB.GetCollection<Warehouse>("Warehouse");
     
 }

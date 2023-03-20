@@ -1,3 +1,5 @@
+using Blazored.LocalStorage;
+using Blazored.SessionStorage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using ElectronNET.API;
@@ -17,10 +19,13 @@ builder.Services.AddElectron();
 builder.WebHost.UseElectron(args);
 builder.Services.AddMudServices();
 builder.Services.AddScoped<IUser, UserController>();
+builder.Services.AddScoped<IWarehouse, WarehouseController>();
 
 //FOR AUT/AUTH
-// builder.Services.AddBlazoredLocalStorage();
-// builder.Services.AddBlazoredSessionStorage();
+builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddBlazoredSessionStorage();
+
+
 StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
 var app = builder.Build();
 
@@ -52,14 +57,8 @@ async void CreateElectronWindow()
         {
             Width = 1024,
             Height = 768,
-            Frame = false,
-            Fullscreen = true,
-            Kiosk = true
-            
         }
-        
-        
-        );
+    );
     await window.WebContents.Session.ClearCacheAsync();
     
     window.OnMaximize += Window_OnMaximize; 

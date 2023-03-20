@@ -1,66 +1,53 @@
 ﻿@inherits LayoutComponentBase
 @inject IJSRuntime JsRuntime
 @inject ElectronNET.API.WindowManager WindowManager
+@inject Blazored.LocalStorage.ILocalStorageService localStorageService
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorageService
+@using SWH.Shared.Components
+
 <PageTitle>SolarWarehouse</PageTitle>
     <MudThemeProvider/>
     <MudDialogProvider/>
     <MudSnackbarProvider/>
 <div class="page">
-
     <div class="sidebar">
         <NavMenu/>
     </div>
-
     <main>
-       
-        
-        <div class="top-row px-4">
-            <div style="-webkit-app-region: drag; display: block; height: 10vh; width: 100%"></div>
-            <MudButton OnClick="minimize">
-                <MudIcon Icon="@Icons.Filled.Minimize" Size="Size.Large"></MudIcon>
-            </MudButton>
-            
-            <MudButton OnClick="maximize">
-                 <MudIcon Icon="@Icons.Filled.Fullscreen" Size="Size.Large"></MudIcon>
-            </MudButton>
-            <MudButton OnClick="close">
-                <MudIcon Icon="@Icons.Filled.Close" Color="Color.Error" Size="Size.Large"></MudIcon>
-            </MudButton>
-        </div>
-
-        <article class="content px-4">
+        <div class="content px-4 auth">
+            <MudPaper Width="100%" Class="d-flex align-content-end" Elevation="1" Style="background-color: #e9e9e9">
+                <LoginDisplay role="role" isAuthenticated="isAuthenticated"/>
+            </MudPaper>
             @Body
-        </article>
+        </div>
     </main>
 </div>
 
 @code
 {
+    private bool isAuthenticated { get; set; }
+    private int role { get; set; }
+    private bool isDarkTheme;
 
-    void close()
-    {
-        if (WindowManager.BrowserWindows.Count > 0 )
-        {
-            WindowManager.BrowserWindows.First().Close();
-        }
-    }
-    void maximize()
-    {
-      
-        if (WindowManager.BrowserWindows.Count > 0)
-        {
-            WindowManager.BrowserWindows.First().Maximize();
-        }
 
-    }
-    
-
-    void minimize()
+    protected override async Task OnInitializedAsync()
     {
-        if (WindowManager.BrowserWindows.Count > 0)
+        try
         {
-            WindowManager.BrowserWindows.First().Minimize();
+            if (await localStorageService.ContainKeyAsync("isAuthenticated"))
+            {
+                isAuthenticated = await localStorageService.GetItemAsync<bool>("isAuthenticated");
+                role = await localStorageService.GetItemAsync<int>("role");
+            }
+            else
+            {
+                isAuthenticated = await sessionStorageService.GetItemAsync<bool>("isAuthenticated");
+                role = await sessionStorageService.GetItemAsync<int>("role");
+            }
         }
-       
+        catch
+        {
+    // ignored
+        }
     }
 }

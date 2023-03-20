@@ -1,0 +1,105 @@
+﻿@using SWH.Interfaces
+@using System.Text
+@using SWH.Models
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject ISnackbar Snackbar
+@inject NavigationManager Nav
+@inject IUser userController
+
+<MudDialog Class="Justify-content-start">
+    <DialogContent >
+        <MudForm @bind-IsValid="_success">
+            <MudTextField T="string" Required="true" Label="Username" Variant="Variant.Outlined" MaxLength="45" @bind-Value="UserName"/>
+            <MudTextField T="string" Required="true" Label="Password" Variant="Variant.Outlined" MaxLength="45" InputType="InputType.Password" @bind-Value="Password"/>
+            <br/>
+            <MudGrid Justify="Justify.SpaceBetween" >
+                <MudItem Class="align-content-start">
+                    <MudCheckBox T="bool" @bind-Checked="keepMeLoggedIn">Remember me</MudCheckBox>
+                </MudItem>
+                <MudItem Class="align-self-end">
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="Login" Disabled="@(!_success)">Ok</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+</MudDialog>
+
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    private bool _success;
+    private bool isAuthenticated { get; set; }
+    private string UserName { get; set; }
+    private string Password { get; set; }
+    private bool keepMeLoggedIn { get; set; }
+    private string salt;
+
+    private async void Login()
+    {
+        if(string.IsNullOrEmpty(UserName) || string.IsNullOrEmpty(Password))
+        {
+            Snackbar.Add("Empty username or password");
+            return;
+        }
+
+        User user;
+        try
+        {
+            //TODO
+            //get user from DB
+            user = userController.GetUser(UserName);
+        }
+        
+        catch
+        {
+            Snackbar.Add("Invalid username or password");
+            return;
+        }
+        var salted_pass = GenerateSHA256Hash(Password, user.Salt);
+      
+        if(!string.Equals(user.Password, salted_pass, StringComparison.CurrentCultureIgnoreCase))
+        {
+            Snackbar.Add("Invalid username or password");
+            return;
+        }
+        if (keepMeLoggedIn)
+        {
+            await localStorage.SetItemAsync("isAuthenticated", true);
+            await localStorage.SetItemAsync("UserName", UserName);
+            await localStorage.SetItemAsync("Role", user.role);
+        }
+        else
+        {
+            await sessionStorage.SetItemAsync("isAuthenticated", true);
+            await sessionStorage.SetItemAsync("UserName", UserName);
+            await sessionStorage.SetItemAsync("Role", user.role);
+            
+        }
+        isAuthenticated = true;
+        Snackbar.Add("Login successful");
+        Nav.NavigateTo(Nav.Uri,forceLoad:true);
+        MudDialog.Close();
+    }
+    
+    private static string ByteArrayToHexString(byte[] ba)
+    {
+        StringBuilder hex = new(ba.Length * 2);
+        foreach (var b in ba)
+            hex.Append($"{b:x2}");
+        return hex.ToString();
+    }
+
+    private string GenerateSHA256Hash(string input, string salt) //currently typed password, salt saved within user
+    {
+        if (salt == null) throw new ArgumentNullException(nameof(salt));
+        var bytes = Encoding.UTF8.GetBytes(input + salt);
+        System.Security.Cryptography.SHA256Managed sha256Hashstring =
+            new System.Security.Cryptography.SHA256Managed();
+        var hash = sha256Hashstring.ComputeHash(bytes);
+
+        return ByteArrayToHexString(hash);
+    }
+}
