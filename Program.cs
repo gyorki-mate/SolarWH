@@ -19,7 +19,10 @@ builder.Services.AddElectron();
 builder.WebHost.UseElectron(args);
 builder.Services.AddMudServices();
 builder.Services.AddScoped<IUser, UserController>();
-builder.Services.AddScoped<IWarehouse, WarehouseController>();
+builder.Services.AddScoped<IRow, RowController>();
+builder.Services.AddScoped<IColumn, ColumnController>();
+builder.Services.AddScoped<IShelf, ShelfController>();
+builder.Services.AddScoped<IProduct, ProductController>();
 
 //FOR AUT/AUTH
 builder.Services.AddBlazoredLocalStorage();

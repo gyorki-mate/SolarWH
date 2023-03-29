@@ -3,16 +3,16 @@ using SWH.Interfaces;
 using MongoDB.Driver;
 namespace SWH.Controllers;
 
-public class WarehouseController : IWarehouse
+public class RowController : IRow
 {
     DbContext context = new DbContext();
 
-    public async Task<List<Warehouse>> GetAllRows()
+    public async Task<List<Row>> GetAllRows()
     {
         try
         {
-            var rows = context.WarehouseRecord.Find(FilterDefinition<Warehouse>.Empty).ToListAsync();
-            return await rows;
+            var row = context.RowRecord.Find(FilterDefinition<Row>.Empty).ToListAsync();
+            return await row;
         }
         catch (Exception e)
         {
@@ -21,11 +21,11 @@ public class WarehouseController : IWarehouse
         }
     }
 
-    public Warehouse GetRow(string rowID)
+    public Row GetRow(string rowID)
     {
         try
         {
-            var row = context.WarehouseRecord.Find(x => x.id == rowID).FirstOrDefault();
+            var row = context.RowRecord.Find(x => x.id == rowID).FirstOrDefault();
             return  row;
         }
         catch (Exception e)
@@ -35,12 +35,12 @@ public class WarehouseController : IWarehouse
         }
     }
 
-    public void AddRow(Warehouse wh)
+    public void AddRow(Row row)
     {
         throw new NotImplementedException();
     }
 
-    public void UpdateRow(Warehouse wh)
+    public void UpdateRow(Row row)
     {
         throw new NotImplementedException();
     }
