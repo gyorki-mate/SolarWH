@@ -4,12 +4,27 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 
-@if (isAuthenticated)
+@if (isAuthenticated&&_role=="Admin")
 {
     <MudGrid Justify="Justify.FlexEnd" Spacing="3">
        
         <MudItem Class="justify-end">
            <MudLink Color="Color.Info" Typo="Typo.h6" Href="/Profile">Current User: @Username</MudLink>
+        </MudItem>
+        <MudItem Class="justify-end">
+            <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="SignOut">Logout</MudButton>
+        </MudItem>
+        <MudItem  Class="justify-center" >
+            <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="Register">Add New User</MudButton>
+        </MudItem>
+    </MudGrid>
+}
+else if (isAuthenticated)
+{
+    <MudGrid Justify="Justify.FlexEnd" Spacing="3">
+       
+        <MudItem Class="justify-end">
+            <MudLink Color="Color.Info" Typo="Typo.h6" Href="/Profile">Current User: @Username</MudLink>
         </MudItem>
         <MudItem Class="justify-end">
             <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="SignOut">Logout</MudButton>
@@ -82,6 +97,11 @@ else
        DialogService.Show<LoginDialog>("Login");
     }
 
+    private void Register()
+    {
+        DialogService.Show<Register>("Register");
+    }
+    
     private async void SignOut()
     {
         DialogParameters parameters = new() { { "_content", "Are you sure you want to logout? " } };
