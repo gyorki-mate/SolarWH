@@ -1,0 +1,132 @@
+@using System.Text
+@using Controllers
+@using Models
+@inject IDialogService DialogService
+@inject Interfaces.IUser userController;
+@inject ISnackbar Snackbar;
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex flex-column py-1">
+            <MudForm @bind-IsValid="@_success" @ref="form">
+                <MudTextField @bind-Value="_username" Required="true" Immediate="true" Label=" Username " Variant="Variant.Outlined" MaxLength="45" HelperText="Username for new user"/>
+                <MudSelect T="string" @bind-Value="_role" Required="true" Immediate="true" Label="Role" Variant="Variant.Outlined" HelperText="Role for new user" AnchorOrigin="Origin.BottomCenter">
+                    <MudSelectItem Value="@("Expert")" />
+                    <MudSelectItem Value="@("Warehouser")" />
+                    <MudSelectItem Value="@("Warehouse Manager")" />
+                </MudSelect>
+                <MudTextField @bind-Value="_password" Required="true" Immediate="true" Label="Password" Variant="Variant.Outlined" MaxLength="45" @ref="pwField1" InputType="InputType.Password" HelperText="Choose a strong password"/>
+                <MudTextField @bind-Value="_passwordAgain" Required="true" Immediate="true" Label="Password Again" Variant="Variant.Outlined" InputType="InputType.Password" MaxLength="45" Validation="@(new Func<string, string>(PasswordMatch))" HelperText="Repeat the password"/>
+            </MudForm>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Disabled="@(!_success)" Color="Color.Info" Variant="Variant.Filled" OnClick="Close">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    private bool _success;
+    private string _username { get; set; }
+    private string _role { get; set; }
+    private string _password { get; set; }
+    private string _passwordAgain { get; set; }
+    
+    MudTextField<string> pwField1;
+    MudForm form;
+    
+    private string salt;
+    
+    private string? PasswordMatch(string arg)
+    {
+        return pwField1.Value != arg ? "Passwords don't match" : null;
+    }
+    
+    
+    async void Close()
+    {
+        try
+        {
+            DialogParameters parameters = new() { { "_content", "Are you sure you want to save this user?" } };
+            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            var asd = await result.Result;
+            Console.WriteLine(asd.Data);
+            if (asd.Data.Equals(true)) AddUser();
+        }
+        catch (Exception e)
+        {
+    //Ignored
+        }
+        
+    }
+    
+     private static string CreateSalt(int size=30)
+    {
+        var rng = new System.Security.Cryptography.RNGCryptoServiceProvider();
+        var buff = new byte[size];
+        rng.GetBytes(buff);
+        return Convert.ToBase64String(buff);
+    }
+
+    private string ByteArrayToHexString(byte[] ba)
+    {
+        var hex = new StringBuilder(ba.Length * 2);
+        foreach (var b in ba)
+            hex.Append($"{b:x2}");
+        return hex.ToString();
+    }
+
+    private string GenerateSHA256Hash(string input, string salt) //currently typed password, salt saved within user
+    {
+        var bytes = Encoding.UTF8.GetBytes(input + salt);
+        System.Security.Cryptography.SHA256Managed sha256hashstring =
+            new System.Security.Cryptography.SHA256Managed();
+        var hash = sha256hashstring.ComputeHash(bytes);
+
+        return ByteArrayToHexString(hash);
+    }
+    
+    private void AddUser()
+    {
+        if (_password != _passwordAgain)
+        {
+            Snackbar.Add("Passwords do not match", Severity.Error);
+            return;
+        }
+        if(_username.Length < 4)
+        {
+            Snackbar.Add("Username must be at least 4 characters", Severity.Error);
+            return;
+        }
+        try
+        {
+          
+            var checkUser = userController.GetUser(_username);
+            if(checkUser is not null )
+            {
+                Snackbar.Add("Username already exists", Severity.Error);
+                return;
+            }
+        }
+       catch(Exception e)
+        {
+            Console.WriteLine(e.Message);
+            return;
+        }
+        var salt = CreateSalt();
+        _password = GenerateSHA256Hash(_password, salt);
+        var user = new User
+        {
+            UserName = _username,
+            Password = _password,
+            Salt = salt,
+            role = _role
+        };
+        userController.AddUser(user);
+        MudDialog.Close(DialogResult.Ok(0));
+    }
+}
