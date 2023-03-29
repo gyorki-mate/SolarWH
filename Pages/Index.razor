@@ -25,25 +25,18 @@ Welcome to your new app.
     List<Shelf> _shelves = new();
     List<Column> _columns = new();
 
-    Product p = new()
-    {
-        Name = "P1",
-        Price = 15.99
-    };
+  
 
-    Shelf s = new()
-    {
-        Name = "Shelf1",
-        Product =
-            new Product
-            {
-                Name = "P2",
-                Price = 8.99
-            }
-    };
+    
 
     public void addProduct()
     {
+        Product p = new()
+        {
+            Name = "P1",
+            Price = 900
+        };
+        
         ProductController.AddProduct(p);
     }
 

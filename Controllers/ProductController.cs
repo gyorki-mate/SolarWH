@@ -38,9 +38,17 @@ public class ProductController : IProduct
         }
     }
 
-    public void UpdateProduct(Product product)
+    public async void UpdateProduct(Product product)
     {
-        throw new NotImplementedException();
+        try
+        {
+            await context.ProductRecord.ReplaceOneAsync(x => x.id == product.id, product);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     public void DeleteProduct(string productID)

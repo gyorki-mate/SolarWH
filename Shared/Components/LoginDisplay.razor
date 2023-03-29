@@ -51,6 +51,7 @@ else
     private string Username;
 
     private string _role;
+    DialogOptions mediumWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
 
 
     protected override async void OnInitialized()
@@ -99,7 +100,7 @@ else
 
     private void Register()
     {
-        DialogService.Show<Register>("Register");
+        DialogService.Show<Register>("Add User",mediumWidth);
     }
     
     private async void SignOut()
