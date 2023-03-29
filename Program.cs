@@ -23,6 +23,7 @@ builder.Services.AddScoped<IRow, RowController>();
 builder.Services.AddScoped<IColumn, ColumnController>();
 builder.Services.AddScoped<IShelf, ShelfController>();
 builder.Services.AddScoped<IProduct, ProductController>();
+builder.Services.AddScoped<IProject, ProjectController>();
 
 //FOR AUT/AUTH
 builder.Services.AddBlazoredLocalStorage();

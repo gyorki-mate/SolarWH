@@ -4,16 +4,16 @@ using SWH.Models;
 
 namespace SWH.Controllers;
 
-public class ColumnController : IColumn
+public class ProjectController : IProject
 {
     DbContext context = new DbContext();
 
-    public async Task<List<Column>> GetAllColumns()
+    public async Task<List<Project>> GetAllProjects()
     {
         try
         {
-            var columns = context.ColumnRecord.Find(FilterDefinition<Column>.Empty).ToListAsync();
-            return await columns;
+            var projects = context.ProjectRecord.Find(FilterDefinition<Project>.Empty).ToListAsync();
+            return await projects;
         }
         catch (Exception e)
         {
@@ -22,12 +22,12 @@ public class ColumnController : IColumn
         }
     }
 
-    public Column GetColumn(string columnID)
+    public Project GetProject(string projectID)
     {
         try
         {
-            var column = context.ColumnRecord.Find(x => x.id == columnID).FirstOrDefault();
-            return column;
+            var project = context.ProjectRecord.Find(x => x.id == projectID).FirstOrDefault();
+            return project;
         }
         catch (Exception e)
         {
@@ -36,11 +36,11 @@ public class ColumnController : IColumn
         }
     }
 
-    public async void AddColumn(Column column)
+    public async void AddProject(Project project)
     {
         try
         {
-            await context.ColumnRecord.InsertOneAsync(column);
+            await context.ProjectRecord.InsertOneAsync(project);
         }
         catch (Exception e)
         {
@@ -49,11 +49,11 @@ public class ColumnController : IColumn
         }
     }
 
-    public void UpdateColumn(Column column)
+    public void UpdateProject(Project project)
     {
         try
         {
-            context.ColumnRecord.DeleteOne(x => x.id == column.id);
+            context.ProjectRecord.DeleteOne(x => x.id == project.id);
         }
         catch (Exception e)
         {
@@ -62,11 +62,11 @@ public class ColumnController : IColumn
         }
     }
 
-    public void DeleteColumn(string columnID)
+    public void DeleteProject(string projectID)
     {
         try
         {
-            context.ColumnRecord.DeleteOne(x => x.id == columnID);
+            context.ProjectRecord.DeleteOne(x => x.id == projectID);
         }
         catch (Exception e)
         {

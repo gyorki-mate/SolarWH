@@ -30,5 +30,7 @@ public class DbContext
     public IMongoCollection<Shelf> ShelfRecord => _mongoDB.GetCollection<Shelf>("Shelf");
     public IMongoCollection<Product> ProductRecord => _mongoDB.GetCollection<Product>("Product");
     
+    public IMongoCollection<Project> ProjectRecord => _mongoDB.GetCollection<Project>("Project");
+
     
 }

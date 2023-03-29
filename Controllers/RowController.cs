@@ -1,6 +1,7 @@
 ﻿using SWH.Models;
 using SWH.Interfaces;
 using MongoDB.Driver;
+
 namespace SWH.Controllers;
 
 public class RowController : IRow
@@ -26,7 +27,7 @@ public class RowController : IRow
         try
         {
             var row = context.RowRecord.Find(x => x.id == rowID).FirstOrDefault();
-            return  row;
+            return row;
         }
         catch (Exception e)
         {
@@ -50,11 +51,27 @@ public class RowController : IRow
 
     public void UpdateRow(Row row)
     {
-        throw new NotImplementedException();
+        try
+        {
+            context.RowRecord.DeleteOne(x => x.id == row.id);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
-    public void DeleteRow(string whID)
+    public void DeleteRow(string rowID)
     {
-        throw new NotImplementedException();
+        try
+        {
+            context.RowRecord.DeleteOne(x => x.id == rowID);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }

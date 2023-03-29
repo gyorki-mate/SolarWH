@@ -1,6 +1,7 @@
 ﻿using SWH.Models;
 using SWH.Interfaces;
 using MongoDB.Driver;
+
 namespace SWH.Controllers;
 
 public class UserController : IUser
@@ -9,7 +10,6 @@ public class UserController : IUser
 
     public UserController()
     {
-      
     }
 
     public async void AddUser(User user)
@@ -40,14 +40,14 @@ public class UserController : IUser
 
         return null;
     }
-    
+
     //get user by username
     public User GetUser(string userName)
     {
         try
         {
             var User = context.UserRecord.Find(x => x.UserName == userName).FirstOrDefault();
-            return  User;
+            return User;
         }
         catch (Exception e)
         {
@@ -58,11 +58,28 @@ public class UserController : IUser
 
     public async void UpdateUser(User user)
     {
-        await context.UserRecord.ReplaceOneAsync(x => x.id == user.id, user);
+        try
+        {
+            await context.UserRecord.ReplaceOneAsync(x => x.id == user.id, user);
+
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     public void DeleteUser(string userID)
     {
-        throw new NotImplementedException();
+        try
+        {
+            context.UserRecord.DeleteOne(x => x.id == userID);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }

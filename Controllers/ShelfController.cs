@@ -19,21 +19,31 @@ public class ShelfController : IShelf
         {
             Console.WriteLine(e);
             throw;
-        } 
+        }
     }
 
     public Shelf GetShelf(string shelfID)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var Shelf = context.ShelfRecord.Find(x => x.id == shelfID).FirstOrDefault();
+            return Shelf;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     public async void AddShelf(Shelf shelf)
     {
-        if (shelf.Quantity>shelf.Product.MaxQuantity)
+        if (shelf.Quantity > shelf.Product.MaxQuantity)
         {
             //throw exception, quantity is more than the maxquantity
             throw new Exception("Quantity is more than the max quantity");
         }
+
         try
         {
             await context.ShelfRecord.InsertOneAsync(shelf);
@@ -52,6 +62,14 @@ public class ShelfController : IShelf
 
     public void DeleteShelf(string shelfID)
     {
-        throw new NotImplementedException();
+        try
+        {
+            context.ShelfRecord.DeleteOne(x => x.id == shelfID);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }
