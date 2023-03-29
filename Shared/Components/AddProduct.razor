@@ -1,0 +1,72 @@
+﻿@using System.Text
+@using Models
+@using SWH.Interfaces
+@inject IDialogService DialogService
+@inject IProduct ProductController
+@inject ISnackbar Snackbar;
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex flex-column py-1">
+            <MudForm @bind-IsValid="@_success" @ref="form">
+                <MudTextField @bind-Value="ProductName" Required="true" Immediate="true" Label="Product Name" Variant="Variant.Outlined" MaxLength="45" HelperText="Name of the product"/>
+                <MudTextField @bind-Value="Price" Required="true" Immediate="true" Label="Price" Variant="Variant.Outlined" MaxLength="10" InputType="InputType.Number" HelperText="Price of the product"/>
+                <MudTextField @bind-Value="MaxQuantity" Required="true" Immediate="true" Label="Max Quantity" Variant="Variant.Outlined" InputType="InputType.Number" MaxLength="2"  HelperText="Max quantity of the product"/>
+            </MudForm>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Disabled="@(!_success)" Color="Color.Info" Variant="Variant.Filled" OnClick="Close">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    private bool _success;
+    private string ProductName { get; set; }
+    private double Price { get; set; }
+    private int MaxQuantity { get; set; }
+
+    MudForm form;
+    
+    async void Close()
+    {
+        try
+        {
+            DialogParameters parameters = new() { { "_content", "Are you sure you want to save this product?" } };
+            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            var res = await result.Result;
+            Console.WriteLine("new product data "+ res.Data);
+            if (res.Data.Equals(true)) addProduct();
+        }
+        catch (Exception e)
+        {
+    //Ignored
+        }
+        
+    }
+
+    private void addProduct()
+    {
+        try
+        {
+            Product product = new()
+            {
+                Name = ProductName,
+                Price = Price,
+                MaxQuantity = MaxQuantity
+            };
+        
+            ProductController.AddProduct(product);
+            MudDialog.Close(true);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+}

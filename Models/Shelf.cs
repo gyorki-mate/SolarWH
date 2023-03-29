@@ -10,5 +10,7 @@ public class Shelf
 
     [BsonElement("name")] public string Name { get; set; }
 
-    [BsonElement("products")] public List<Product> Products { get; set; } = new List<Product>();
+    [BsonElement("products")] public Product Product { get; set; }
+    [BsonElement("quantity")] public int Quantity { get; set; }
+    
 }

@@ -6,7 +6,7 @@ namespace SWH.Models;
 public class Row
 {
     [BsonRepresentation(BsonType.ObjectId)]
-    public string id { get; }
+    public string id { get; private set; }
 
     [BsonElement("name")] public string Name { get; set; }
 

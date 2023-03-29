@@ -35,9 +35,17 @@ public class RowController : IRow
         }
     }
 
-    public void AddRow(Row row)
+    public async void AddRow(Row row)
     {
-        throw new NotImplementedException();
+        try
+        {
+            await context.RowRecord.InsertOneAsync(row);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     public void UpdateRow(Row row)

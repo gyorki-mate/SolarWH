@@ -2,9 +2,11 @@
 @using SWH.Models
 @using SWH.Interfaces
 @using MongoDB.Driver.Linq
+@using SWH.Controllers
 @inject IProduct ProductController
 @inject IShelf ShelfController
 @inject IColumn ColumnController
+@inject IRow RowController
 
 <PageTitle>Index</PageTitle>
 
@@ -12,13 +14,17 @@
 <MudButton OnClick="addProduct">add product</MudButton>
 <MudButton OnClick="addShelf">add shelf</MudButton>
 <MudButton OnClick="addColumn">add column</MudButton>
+<MudButton OnClick="addRow">add row</MudButton>
 
 <MudButton OnClick="getshelves">get shelves</MudButton>
 
 Welcome to your new app.
 
 @code{
+    List<Product> _products = new();
     List<Shelf> _shelves = new();
+    List<Column> _columns = new();
+
     Product p = new()
     {
         Name = "P1",
@@ -28,21 +34,12 @@ Welcome to your new app.
     Shelf s = new()
     {
         Name = "Shelf1",
-    //add to products list
-        Products = new List<Product>
-        {
+        Product =
             new Product
             {
                 Name = "P2",
                 Price = 8.99
-            },
-            new Product
-            {
-                Name = "P3",
-                Price = 11.99
-            },
-        }
-
+            }
     };
 
     public void addProduct()
@@ -50,41 +47,64 @@ Welcome to your new app.
         ProductController.AddProduct(p);
     }
 
-    public void addShelf()
+    public async void addShelf()
     {
-        ShelfController.AddShelf(s);
+        _products = await ProductController.GetAllProducts();
+        for (var index = 0; index < _products.Count; index++)
+        {
+            var product = _products[index];
+            var shelf = new Shelf
+            {
+                Name = $"Shelf{index}",
+                Product = product
+            };
+            ShelfController.AddShelf(shelf);
+        }
     }
 
-    private void addColumn()
+    private async void addColumn()
     {
+        _shelves = await ShelfController.GetAllShelves();
+        
         Column column = new()
         {
-            Name = "1",
+            Name = "Col1",
             Shelves = _shelves
         };
-        
+
         ColumnController.AddColumn(column);
+    }
+
+    public async void addRow()
+    {
+        _columns = await ColumnController.GetAllColumns();
+        Console.WriteLine(_columns.Count);
+
+        RowController.AddRow(new Models.Row
+        {
+            Name = "Row1",
+            Columns = _columns
+        });
+        RowController.AddRow(new Models.Row
+        {
+            Name = "Row2",
+            Columns = _columns
+        });
     }
 
     public async void getshelves()
     {
-         var  shelves = await ShelfController.GetAllShelves();
+        var shelves = await ShelfController.GetAllShelves();
         _shelves = shelves;
         foreach (var shelf in shelves)
         {
             Console.WriteLine(shelf);
             Console.WriteLine(shelf.Name);
             int count = 0;
-            foreach (var product in shelf.Products)
-            {
-                Console.WriteLine(product.Name + " " + product.Price);
-                Console.WriteLine(shelf.Products[count] + "asdasd");
-                count++;
-            }
         }
         Console.WriteLine(shelves);
     }
-    
-   
+
+
 
 }

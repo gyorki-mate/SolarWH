@@ -11,4 +11,5 @@ public class Product
     [BsonElement("name")] public string Name { get; set; }
 
     [BsonElement("price")] public double Price { get; set; }
+    [BsonElement("maxQuantity")] public int MaxQuantity { get;  set; }
 }

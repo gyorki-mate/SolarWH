@@ -45,6 +45,14 @@ public class ProductController : IProduct
 
     public void DeleteProduct(string productID)
     {
-        throw new NotImplementedException();
+        try
+        {
+            context.ProductRecord.DeleteOne(x => x.id == productID);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }
