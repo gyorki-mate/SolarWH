@@ -16,22 +16,25 @@
           CancelEditTooltip="Cancel Edit"
           RowEditCommit="CommitEdit"
           RowEditCancel="ResetItemToOriginalValues"
-          RowEditPreview="Backup">
+          RowEditPreview="Backup"
+          Filter="new Func<Product, bool>(FilterFunc1)">
 
     <ToolBarContent>
+
+        <MudItem xs="6">
+            <MudTextField @bind-Value="searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Style="justify-content: end" MaxLength="45" Clearable/>
+        </MudItem>
+        <MudSpacer/>
         <MudTooltip Class="align-content-lg-end" Text="Add product">
             <MudIconButton OnClick="AddProduct" Icon="@Icons.Material.Outlined.Add" Size="Size.Large"/>
         </MudTooltip>
-        <MudItem xs="6">
-            <MudTextField @bind-Value="searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" MaxLength="45"/>
-        </MudItem>
     </ToolBarContent>
     <HeaderContent>
         <MudTh>
             <MudTableSortLabel SortBy="new Func<Product, object>(x => x.Name)">Product Name</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<Product, object >(x => x.Price)" >Price</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<Product, object>(x => x.Price)">Price</MudTableSortLabel>
         </MudTh>
         <MudTh>
             <MudTableSortLabel SortBy="new Func<Product, object>(x => x.MaxQuantity)">Max Quantity</MudTableSortLabel>
@@ -40,7 +43,7 @@
     </HeaderContent>
     <RowTemplate Context="productContext">
         <MudTd DataLabel="name">@productContext.Name</MudTd>
-        <MudTd DataLabel="price" >
+        <MudTd DataLabel="price">
             @productContext.Price HUF
         </MudTd>
         <MudTd DataLabel="maxQuantity">@productContext.MaxQuantity</MudTd>
@@ -51,7 +54,7 @@
     <RowEditingTemplate Context="productContext">
         <MudTd DataLabel="name">@productContext.Name</MudTd>
         <MudTd DataLabel="price">
-            <MudNumericField @bind-Value="selectedItem.Price"  Required MaxLength="5" Min="0" Max="10000" Immediate />
+            <MudNumericField @bind-Value="selectedItem.Price" Required MaxLength="5" Min="0" Max="10000" Immediate/>
         </MudTd>
         <MudTd DataLabel="maxQuantity">@productContext.MaxQuantity</MudTd>
     </RowEditingTemplate>
@@ -144,6 +147,13 @@
             Price = ((Product)element).Price,
             MaxQuantity = ((Product)element).MaxQuantity
         };
+    }
+
+    private bool FilterFunc1(Product product) => FilterFunc(product, searchString1);
+
+    private bool FilterFunc(Product product, string searchString)
+    {
+        return string.IsNullOrWhiteSpace(searchString) || product.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
     }
 
 }
