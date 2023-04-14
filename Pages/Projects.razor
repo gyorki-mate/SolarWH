@@ -80,7 +80,7 @@
         var result = await res.Result;
         if (result.Data is null) return;
         _projects = await ProjectController.GetAllProjects();
-        Snackbar.Add("Product added!", Severity.Success);
+        Snackbar.Add("Project added!", Severity.Success);
         StateHasChanged();
     }
     
