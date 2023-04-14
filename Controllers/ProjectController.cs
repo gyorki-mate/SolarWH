@@ -49,11 +49,11 @@ public class ProjectController : IProject
         }
     }
 
-    public void UpdateProject(Project project)
+    public async void UpdateProject(Project project)
     {
         try
         {
-            context.ProjectRecord.DeleteOne(x => x.id == project.id);
+            await context.ProjectRecord.ReplaceOneAsync(x => x.id == project.id, project);
         }
         catch (Exception e)
         {
