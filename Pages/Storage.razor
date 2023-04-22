@@ -2,52 +2,51 @@
 @page "/storage"
 @using SWH.Models
 
-<div class="d-flex">
-    <MudDropContainer T="DropItem" Items="_sProducts" CanDropClass="mud-border-info" NoDropClass="mud-border-error" ItemsSelector="@((item,dropzone) => item.Identifier == dropzone)" ItemDropped="ItemUpdated" Class="border-2 border-solid mud-border-lines-default">
+<MudDropContainer T="DropItem" Items="_products" CanDropClass="mud-border-info" NoDropClass="mud-border-error" ItemsSelector="@((item,dropzone) => item.Identifier  == dropzone)" ItemDropped="ItemUpdated" Class="border-2 border-solid mud-border-lines-default">
     <ChildContent>
-        <MudDropZone T="DropItem" Identifier="uProducts" DraggingClass="mud-alert-text-info" ItemDraggingClass="mud-alert-text-info" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8">
-            <MudText Typo="Typo.h6" Class="mb-4">Unstored Products</MudText>
-        </MudDropZone>
-        
-        @for(int r = 0; r < 8; r++)
-            {
-                var row = r.ToString();
-                <div class="d-flex">
-                    @for (int c = 0; c < 8; c++)
-                    {
+        <MudGrid Justify="Justify.Center">
+            <MudItem xs="3">
+                <MudDropZone T="DropItem" Identifier="0" DraggingClass="mud-alert-text-info" ItemDraggingClass="mud-alert-text-info" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8">
+                    <MudText Typo="Typo.h6" Class="mb-4">Unstored Products</MudText>
+                </MudDropZone>
+            </MudItem>
+            <MudItem xs="9">
+                @for (int r = 0; r < 6; r++) {
+                    var row = r.ToString();
+                    <div class="d-flex">
+                        @for (int c = 0; c < 6; c++) {
                         var col = c.ToString();
-                        <MudDropZone T="DropItem" Identifier="@($"{row}{col}")" DraggingClass="mud-theme-success" Class="d-flex justify-center align-center border-2 border-solid docs-gray-bg mud-border-lines-default" Style="height:64px;width:64px;" />
-                    }
-                </div>
                         
-            }
+                        <MudDropZone T="DropItem" Identifier="@($"{row}{col}")" DraggingClass="mud-alert-text-info" Class="d-flex justify-center align-center border-2 border-solid docs-gray-bg mud-border-lines-default" Style="height:96px;width:16.33%;"/>
+                        }
+                    </div>
+                }
+            </MudItem>
+        </MudGrid>
     </ChildContent>
     <ItemRenderer>
-        <div class="d-flex justify-center align-center flex-grow-1">
-            <MudListItem Text="@context.Name"/>
-        </div>
+        <MudPaper Class="pa-4 rounded-lg my-3">@context.Name</MudPaper>
     </ItemRenderer>
 </MudDropContainer>
-</div>
-
 
 @code {
     private void ItemUpdated(MudItemDropInfo<DropItem> dropItem)
     {
         dropItem.Item.Identifier = dropItem.DropzoneIdentifier;
-        
     }
 
-    private List<DropItem> _sProducts = new()
+    private List<DropItem> _products = new()
     {
-        new DropItem(){ Name = "Item 1", Identifier = "uProducts" },
-        new DropItem(){ Name = "Item 3", Identifier = "uProducts" }
-    };
-
-    private List<DropItem> _uProducts = new()
-    {
-        new DropItem(){ Name = "Item 1", Identifier = "uProducts" },
-        new DropItem(){ Name = "Item 3", Identifier = "uProducts" }
+        new DropItem(){ Name = "Item 1", Identifier = "0" },
+        new DropItem(){ Name = "Item 1", Identifier = "0" },
+        new DropItem(){ Name = "Item 1", Identifier = "0" },
+        new DropItem(){ Name = "Item 1", Identifier = "0" },
+        new DropItem(){ Name = "Item 1", Identifier = "0" },
+        new DropItem(){ Name = "Item 1000000000000", Identifier = "0" },
+        new DropItem(){ Name = "Item 1", Identifier = "0" },
+        new DropItem(){ Name = "Item 1", Identifier = "0" },
+        new DropItem(){ Name = "Item 1", Identifier = "0" },
+        new DropItem(){ Name = "Item 3", Identifier = "0" }
     };
     
     public class DropItem
