@@ -38,11 +38,11 @@ public class ShelfController : IShelf
 
     public async void AddShelf(Shelf shelf)
     {
-        if (shelf.Quantity > shelf.Product.MaxQuantity)
-        {
-            //throw exception, quantity is more than the maxquantity
-            throw new Exception("Quantity is more than the max quantity");
-        }
+        // if (shelf.Quantity > shelf.Product.MaxQuantity)
+        // {
+        //     //throw exception, quantity is more than the maxquantity
+        //     throw new Exception("Quantity is more than the max quantity");
+        // }
 
         try
         {

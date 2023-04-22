@@ -1,102 +1,131 @@
 ﻿@page "/"
 @using SWH.Models
 @using SWH.Interfaces
-@using MongoDB.Driver.Linq
-@using SWH.Controllers
 @inject IProduct ProductController
+@inject IProductType ProductTypeController
 @inject IShelf ShelfController
-@inject IColumn ColumnController
-@inject IRow RowController
+
 
 <PageTitle>Index</PageTitle>
 
 <h1>Hello, world!</h1>
-<MudButton OnClick="addProduct">add product</MudButton>
-<MudButton OnClick="addShelf">add shelf</MudButton>
-<MudButton OnClick="addColumn">add column</MudButton>
-<MudButton OnClick="addRow">add row</MudButton>
-
-<MudButton OnClick="getshelves">get shelves</MudButton>
+<MudButton OnClick="addProductType">add productType</MudButton>
+<MudButton OnClick="addProduct">add prod</MudButton>
+<MudButton OnClick="listProducts">list prod</MudButton>
+@* <MudButton OnClick="addRow">add row</MudButton> *@
+@* *@
+@* <MudButton OnClick="getshelves">get shelves</MudButton> *@
 
 Welcome to your new app.
 
 @code{
     List<Product> _products = new();
     List<Shelf> _shelves = new();
-    List<Column> _columns = new();
+    List<ProductType> _productTypes = new ();
 
-  
-
-    
+    public void addProductType()
+    {
+        ProductType pt = new()
+        {
+            MaxCapacity = 8,
+            Name = "Iron",
+            Price = 750
+        };
+        ProductTypeController.AddProductType(pt);
+    }
 
     public void addProduct()
     {
         Product p = new()
         {
-            Name = "P1",
-            Price = 900
+            Quantity = 1
         };
         
-        ProductController.AddProduct(p);
+        ProductController.AddProduct(p,"6443e147191c8079c34efa92");
     }
 
-    public async void addShelf()
+    public async void listProducts()
     {
-        _products = await ProductController.GetAllProducts();
-        for (var index = 0; index < _products.Count; index++)
+        var list = await ProductController.GetAllProducts();
+        Console.WriteLine(list);
+        foreach (var p in list)
         {
-            var product = _products[index];
-            var shelf = new Shelf
-            {
-                Name = $"Shelf{index}",
-                Product = product
-            };
-            ShelfController.AddShelf(shelf);
+            Console.WriteLine(p.ProductType.Name + " " + p.ProductType.Price);
+            Console.WriteLine(p.ProductType);
+           
         }
     }
+    
+    
+    
+    // public void addProduct()
+    // {
+    //     Product p = new()
+    //     {
+    //         Name = "P1",
+    //         Price = 900
+    //     };
+    //     
+    //     ProductController.AddProduct(p);
+    // }
 
-    private async void addColumn()
-    {
-        _shelves = await ShelfController.GetAllShelves();
-        
-        Column column = new()
-        {
-            Name = "Col1",
-            Shelves = _shelves
-        };
-
-        ColumnController.AddColumn(column);
-    }
-
-    public async void addRow()
-    {
-        _columns = await ColumnController.GetAllColumns();
-        Console.WriteLine(_columns.Count);
-
-        RowController.AddRow(new Models.Row
-        {
-            Name = "Row1",
-            Columns = _columns
-        });
-        RowController.AddRow(new Models.Row
-        {
-            Name = "Row2",
-            Columns = _columns
-        });
-    }
-
-    public async void getshelves()
-    {
-        var shelves = await ShelfController.GetAllShelves();
-        _shelves = shelves;
-        foreach (var shelf in shelves)
-        {
-            Console.WriteLine(shelf);
-            Console.WriteLine(shelf.Name);
-            int count = 0;
-        }
-        Console.WriteLine(shelves);
-    }
+    // public async void addShelf()
+    // {
+    //     _products = await ProductController.GetAllProducts();
+    //     for (var index = 0; index < _products.Count; index++)
+    //     {
+    //         var product = _products[index];
+    //         var shelf = new Shelf
+    //         {
+    //             Name = $"Shelf{index}",
+    //             Product = product
+    //         };
+    //         ShelfController.AddShelf(shelf);
+    //     }
+    // }
+    //
+    // private async void addColumn()
+    // {
+    //     _shelves = await ShelfController.GetAllShelves();
+    //     
+    //     Column column = new()
+    //     {
+    //         Name = "Col1",
+    //         Shelves = _shelves
+    //     };
+    //
+    //     ColumnController.AddColumn(column);
+    // }
+    //
+    // public async void addRow()
+    // {
+    //     _columns = await ColumnController.GetAllColumns();
+    //     Console.WriteLine(_columns.Count);
+    //
+    //     RowController.AddRow(new Models.Row
+    //     {
+    //         Name = "Row1",
+    //         Columns = _columns
+    //     });
+    //     RowController.AddRow(new Models.Row
+    //     {
+    //         Name = "Row2",
+    //         Columns = _columns
+    //     });
+    // }
+    //
+    // public async void getshelves()
+    // {
+    //     var shelves = await ShelfController.GetAllShelves();
+    //     _shelves = shelves;
+    //     foreach (var shelf in shelves)
+    //     {
+    //         Console.WriteLine(shelf);
+    //         Console.WriteLine(shelf.Name);
+    //         int count = 0;
+    //     }
+    //     Console.WriteLine(shelves);
+    // }
 
 
 
