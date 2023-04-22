@@ -38,27 +38,20 @@
         <MudTh>
             <MudTableSortLabel SortBy="new Func<Project, object>(x => x.Status)">Project Status</MudTableSortLabel>
         </MudTh>
+        <MudTh> Draft Project</MudTh>
         <MudTh> Delete</MudTh>
     </HeaderContent>
     <RowTemplate Context="projectContext">
         <MudTd DataLabel="name">@projectContext.Name</MudTd>
         <MudTd DataLabel="location">@projectContext.Location</MudTd>
         <MudTd DataLabel="status">@projectContext.Status</MudTd>
+        <MudTd DataLabel="draft">
+            <MudIconButton Icon="@Icons.Filled.Edit" OnClick="@(() => { DraftProject(projectContext.id); })"/>
+        </MudTd>
         <MudTd DataLabel="del">
             <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProject(projectContext.id); })"/>
         </MudTd>
     </RowTemplate>
-    <RowEditingTemplate Context="projectContext">
-        <MudTd DataLabel="name">@projectContext.Name</MudTd>
-        <MudTd DataLabel="location">@projectContext.Location</MudTd>
-        <MudTd DataLabel="status">@projectContext.Status
-            <MudSelect T="string" Label="Status" AnchorOrigin="Origin.BottomCenter">
-                <MudSelectItem Value="@("New")" />
-                <MudSelectItem Value="@("Completed")" />
-                <MudSelectItem Value="@("Failed")" />
-            </MudSelect>
-        </MudTd>
-    </RowEditingTemplate>
 </MudTable>
 
 @code {
@@ -100,6 +93,18 @@
         catch (Exception e)
         {
     //ignored
+        }
+    }
+
+    private async void DraftProject(string index)
+    {
+        try
+        {
+            var res = DialogService.Show<DraftProject>("Draft Project");
+        }
+        catch (Exception e)
+        {
+            //ignored
         }
     }
     

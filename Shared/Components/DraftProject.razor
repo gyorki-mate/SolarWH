@@ -1,0 +1,42 @@
+﻿@using System.Text
+@using Controllers
+@using Models
+@inject IDialogService DialogService
+@inject Interfaces.IProject ProjectController;
+@inject Interfaces.IProductType ProductTypeController;
+@inject ISnackbar Snackbar;
+
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex flex-column py-1">
+            <MudSelect T="string" Label="Products" HelperText="Pick your favorite states with keys" MultiSelection="true" @bind-Value="value" @bind-SelectedValues="options">
+                @foreach (var product in _products)
+                {
+                    <MudSelectItem T="string" Value="@product.Name">@product.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Disabled="@(!_success)" Color="Color.Info" Variant="Variant.Filled" OnClick="Close">Draft Project</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private bool _success;
+    List<ProductType> _products = new();
+    private List<ProductType> selectedItems = new();
+    private string value { get; set; }
+    private IEnumerable<string> options { get; set; } = new List<string>() { "Alaska" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _products = await ProductTypeController.GetAllProductTypes();
+    }
+    
+    private void Close()
+    {
+        
+    }
+}

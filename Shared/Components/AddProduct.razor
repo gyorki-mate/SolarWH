@@ -1,70 +1,70 @@
-﻿@* @using Models *@
-@* @using SWH.Interfaces *@
-@* @inject IDialogService DialogService *@
-@* @inject IProduct ProductController *@
-@* *@
-@* <MudDialog> *@
-@*     <DialogContent> *@
-@*         <div class="d-flex flex-column py-1"> *@
-@*             <MudForm @bind-IsValid="@_success" @ref="form"> *@
-@*                 <MudTextField @bind-Value="ProductName" Required="true" Immediate="true" Label="Product Name" Variant="Variant.Outlined" MaxLength="45" HelperText="Name of the product"/> *@
-@*                 <MudNumericField @bind-Value="Price" Required="true" Immediate="true" Label="Price" Variant="Variant.Outlined" MaxLength="5" Min="0" Max="10000"  HelperText="Price of the product"/> *@
-@*                 <MudNumericField @bind-Value="MaxQuantity" Required="true" Immediate="true" Label="Max Quantity" Variant="Variant.Outlined" Min="0" Max="64" MaxLength="2"  HelperText="Max quantity of the product"/> *@
-@*             </MudForm> *@
-@*         </div> *@
-@*     </DialogContent> *@
-@*     <DialogActions> *@
-@*         <MudButton Disabled="@(!_success)" Color="Color.Info" Variant="Variant.Filled" OnClick="Close">Ok</MudButton> *@
-@*     </DialogActions> *@
-@* </MudDialog> *@
-@* *@
-@* *@
-@* @code { *@
-@*     [CascadingParameter] *@
-@*     MudDialogInstance MudDialog { get; set; } *@
-@* *@
-@*     private bool _success; *@
-@*     private string ProductName { get; set; } *@
-@*     private int Price { get; set; } *@
-@*     private int MaxQuantity { get; set; } *@
-@* *@
-@*     MudForm form; *@
-@* *@
-@*     async void Close() *@
-@*     { *@
-@*         try *@
-@*         { *@
-@*             DialogParameters parameters = new() { { "_content", "Are you sure you want to save this product?" } }; *@
-@*             var result = DialogService.Show<ConfirmDialog>("Warning!", parameters); *@
-@*             var res = await result.Result; *@
-@*             Console.WriteLine("new product data "+ res.Data); *@
-@*             if (res.Data.Equals(true)) addProduct(); *@
-@*         } *@
-@*         catch (Exception e) *@
-@*         { *@
-@*     //Ignored *@
-@*         } *@
-@* *@
-@*     } *@
-@* *@
-@*     private void addProduct() *@
-@*     { *@
-@*         try *@
-@*         { *@
-@*             Product product = new() *@
-@*             { *@
-@*                 Name = ProductName, *@
-@*                 Price = Price, *@
-@*                 MaxQuantity = MaxQuantity *@
-@*             }; *@
-@* *@
-@*             ProductController.AddProduct(product); *@
-@*             MudDialog.Close(true); *@
-@*         } *@
-@*         catch (Exception e) *@
-@*         { *@
-@*             Console.WriteLine(e); *@
-@*             throw; *@
-@*         } *@
-@*     } *@
-@* } *@
+﻿@using Models
+@using SWH.Interfaces
+@inject IDialogService DialogService
+@inject IProductType ProductTypeController
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex flex-column py-1">
+            <MudForm @bind-IsValid="@_success" @ref="form">
+                <MudTextField @bind-Value="ProductName" Required="true" Immediate="true" Label="Product Name" Variant="Variant.Outlined" MaxLength="45" HelperText="Name of the product"/>
+                <MudNumericField @bind-Value="Price" Required="true" Immediate="true" Label="Price" Variant="Variant.Outlined" MaxLength="5" Min="0" Max="10000"  HelperText="Price of the product"/>
+                <MudNumericField @bind-Value="MaxCapacity" Required="true" Immediate="true" Label="Max Capacity" Variant="Variant.Outlined" Min="0" Max="64" MaxLength="2"  HelperText="Max quantity of the product"/>
+            </MudForm>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Disabled="@(!_success)" Color="Color.Info" Variant="Variant.Filled" OnClick="Close">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    private bool _success;
+    private string ProductName { get; set; }
+    private int Price { get; set; }
+    private int MaxCapacity { get; set; }
+
+    MudForm form;
+
+    async void Close()
+    {
+        try
+        {
+            DialogParameters parameters = new() { { "_content", "Are you sure you want to save this product type?" } };
+            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            var res = await result.Result;
+            Console.WriteLine("new product type data "+ res.Data);
+            if (res.Data.Equals(true)) addProduct();
+        }
+        catch (Exception e)
+        {
+    //Ignored
+        }
+
+    }
+
+    private void addProduct()
+    {
+        try
+        {
+            ProductType productType = new()
+            {
+                Name = ProductName,
+                Price = Price,
+                MaxCapacity = MaxCapacity
+            };
+
+            ProductTypeController.AddProductType(productType);
+            MudDialog.Close(true);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+}
