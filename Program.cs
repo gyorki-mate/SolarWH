@@ -18,12 +18,12 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddElectron();
 builder.WebHost.UseElectron(args);
 builder.Services.AddMudServices();
-builder.Services.AddScoped<IUser, UserController>();
 
+//FOR CONTROLLERS
+builder.Services.AddScoped<IUser, UserController>();
 builder.Services.AddScoped<IShelf, ShelfController>();
 builder.Services.AddScoped<IProduct, ProductController>();
 builder.Services.AddScoped<IProductType, ProductTypeController>();
-
 builder.Services.AddScoped<IProject, ProjectController>();
 
 //FOR AUT/AUTH

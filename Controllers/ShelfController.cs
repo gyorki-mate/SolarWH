@@ -6,14 +6,16 @@ namespace SWH.Controllers;
 
 public class ShelfController : IShelf
 {
-    DbContext context = new DbContext();
+    private readonly DbContext _context = new();
 
     public async Task<List<Shelf>> GetAllShelves()
     {
         try
         {
-            var shelf = context.ShelfRecord.Find(FilterDefinition<Shelf>.Empty).ToListAsync();
-            return await shelf;
+            var shelves = await _context.ShelfRecord.Find(FilterDefinition<Shelf>.Empty).ToListAsync();
+            //sort the shelves by row and column
+            shelves.Sort((x, y) => x.row.CompareTo(y.row) == 0 ? x.column.CompareTo(y.column) : x.row.CompareTo(y.row));
+            return shelves;
         }
         catch (Exception e)
         {
@@ -22,12 +24,12 @@ public class ShelfController : IShelf
         }
     }
 
-    public Shelf GetShelf(string shelfID)
+    public Shelf GetShelf(string shelfId)
     {
         try
         {
-            var Shelf = context.ShelfRecord.Find(x => x.id == shelfID).FirstOrDefault();
-            return Shelf;
+            var shelf = _context.ShelfRecord.Find(x => x.id == shelfId).FirstOrDefault();
+            return shelf;
         }
         catch (Exception e)
         {
@@ -43,10 +45,11 @@ public class ShelfController : IShelf
         //     //throw exception, quantity is more than the maxquantity
         //     throw new Exception("Quantity is more than the max quantity");
         // }
+//TODO check if compartment is full
 
         try
         {
-            await context.ShelfRecord.InsertOneAsync(shelf);
+            await _context.ShelfRecord.InsertOneAsync(shelf);
         }
         catch (Exception e)
         {
@@ -57,14 +60,24 @@ public class ShelfController : IShelf
 
     public void UpdateShelf(Shelf shelf)
     {
-        throw new NotImplementedException();
+        //TODO check if compartment is full
+
+        try
+        {
+            _context.ShelfRecord.ReplaceOne(x => x.id == shelf.id, shelf);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     public void DeleteShelf(string shelfID)
     {
         try
         {
-            context.ShelfRecord.DeleteOne(x => x.id == shelfID);
+            _context.ShelfRecord.DeleteOne(x => x.id == shelfID);
         }
         catch (Exception e)
         {

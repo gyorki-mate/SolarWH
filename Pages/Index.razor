@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using SWH.Models
 @using SWH.Interfaces
+@using SWH.Shared.enums
 @inject IProduct ProductController
 @inject IProductType ProductTypeController
 @inject IShelf ShelfController
@@ -12,16 +13,16 @@
 <MudButton OnClick="addProductType">add productType</MudButton>
 <MudButton OnClick="addProduct">add prod</MudButton>
 <MudButton OnClick="listProducts">list prod</MudButton>
-@* <MudButton OnClick="addRow">add row</MudButton> *@
-@* *@
-@* <MudButton OnClick="getshelves">get shelves</MudButton> *@
+<MudButton OnClick="addShelf">add shelf</MudButton>
+<MudButton OnClick="listShelves">list shelf</MudButton>
+
 
 Welcome to your new app.
 
 @code{
     List<Product> _products = new();
     List<Shelf> _shelves = new();
-    List<ProductType> _productTypes = new ();
+    List<ProductType> _productTypes = new();
 
     public void addProductType()
     {
@@ -40,8 +41,8 @@ Welcome to your new app.
         {
             Quantity = 1
         };
-        
-        ProductController.AddProduct(p,"6443e147191c8079c34efa92");
+
+        ProductController.AddProduct(p, "6443e147191c8079c34efa92");
     }
 
     public async void listProducts()
@@ -52,81 +53,76 @@ Welcome to your new app.
         {
             Console.WriteLine(p.ProductType.Name + " " + p.ProductType.Price);
             Console.WriteLine(p.ProductType);
-           
         }
     }
-    
-    
-    
-    // public void addProduct()
-    // {
-    //     Product p = new()
-    //     {
-    //         Name = "P1",
-    //         Price = 900
-    //     };
-    //     
-    //     ProductController.AddProduct(p);
-    // }
 
-    // public async void addShelf()
-    // {
-    //     _products = await ProductController.GetAllProducts();
-    //     for (var index = 0; index < _products.Count; index++)
-    //     {
-    //         var product = _products[index];
-    //         var shelf = new Shelf
-    //         {
-    //             Name = $"Shelf{index}",
-    //             Product = product
-    //         };
-    //         ShelfController.AddShelf(shelf);
-    //     }
-    // }
-    //
-    // private async void addColumn()
-    // {
-    //     _shelves = await ShelfController.GetAllShelves();
-    //     
-    //     Column column = new()
-    //     {
-    //         Name = "Col1",
-    //         Shelves = _shelves
-    //     };
-    //
-    //     ColumnController.AddColumn(column);
-    // }
-    //
-    // public async void addRow()
-    // {
-    //     _columns = await ColumnController.GetAllColumns();
-    //     Console.WriteLine(_columns.Count);
-    //
-    //     RowController.AddRow(new Models.Row
-    //     {
-    //         Name = "Row1",
-    //         Columns = _columns
-    //     });
-    //     RowController.AddRow(new Models.Row
-    //     {
-    //         Name = "Row2",
-    //         Columns = _columns
-    //     });
-    // }
-    //
-    // public async void getshelves()
-    // {
-    //     var shelves = await ShelfController.GetAllShelves();
-    //     _shelves = shelves;
-    //     foreach (var shelf in shelves)
-    //     {
-    //         Console.WriteLine(shelf);
-    //         Console.WriteLine(shelf.Name);
-    //         int count = 0;
-    //     }
-    //     Console.WriteLine(shelves);
-    // }
+    public async void listShelves()
+    {
+        var list = await ShelfController.GetAllShelves();
+    // Console.WriteLine(list);
+        foreach (var p in list)
+        {
+            Console.WriteLine(p.column + " " + p.row);
+            Console.WriteLine(p.id);
+        }
+    }
 
-
+    public void addShelf()
+    {
+        Shelf s = new()
+        {
+            column = 0,
+            row = 0,
+    //add to Compartments list
+            Compartments = new List<Compartment>()
+            {
+                new Compartment()
+                {
+                    id = 1,
+                    Products = new List<Product>()
+                    {
+                        new Product()
+                        {
+                            Quantity = 1,
+                            ProductType = new ProductType()
+                            {
+                                Name = "Iron",
+                                Price = 750,
+                                MaxCapacity = 8
+                            }
+                        }
+                    },
+                },
+                new Compartment()
+                {
+                    id = 2,
+                    Products = new List<Product>()
+                    {
+                        new Product()
+                        {
+                            Quantity = 7,
+                            ProductType = new ProductType()
+                            {
+                                Name = "asd",
+                                Price = 150,
+                                MaxCapacity = 8
+                            }
+                        },
+                        new Product()
+                        {
+                            Quantity = 1,
+                            ProductType = new ProductType()
+                            {
+                                Name = "asd",
+                                Price = 150,
+                                MaxCapacity = 8
+                            }
+                        }
+                    },
+                },
+            }
+        };
+        ShelfController.AddShelf(s);
+    }
 
 }

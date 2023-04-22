@@ -13,4 +13,5 @@ public class Product
     public int Quantity { get; set; }
     public ProductType ProductType { get; set; }
 
+    // TODO what happens if the product is not in the warehouse?
 }

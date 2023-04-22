@@ -6,7 +6,7 @@ namespace SWH.Controllers;
 
 public class ProductController : IProduct
 {
-    DbContext _context = new ();
+    private readonly DbContext _context = new();
 
     public async Task<List<Product>> GetAllProducts()
     {
@@ -22,11 +22,11 @@ public class ProductController : IProduct
         }
     }
 
-    public Product GetProduct(string productID)
+    public Product GetProduct(string productId)
     {
         try
         {
-            var product = _context.ProductRecord.Find(x => x.id == productID).FirstOrDefault();
+            var product = _context.ProductRecord.Find(x => x.id == productId).FirstOrDefault();
             product.ProductType =
                 _context.ProductTypeRecord.Find(x => x.id == product.ProductType.id).FirstOrDefault();
             return product;
@@ -49,6 +49,7 @@ public class ProductController : IProduct
             {
                 throw new Exception("Product Type Max Capacity Reached");
             }
+
             _context.ProductRecord.InsertOne(product);
         }
         catch (Exception e)
@@ -58,9 +59,10 @@ public class ProductController : IProduct
         }
     }
 
-
     public async void UpdateProduct(Product product)
     {
+        //TODO check if product type max capacity is reached
+        //TODO update Shelf as well
         try
         {
             await _context.ProductRecord.ReplaceOneAsync(x => x.id == product.id, product);
@@ -74,6 +76,7 @@ public class ProductController : IProduct
 
     public void DeleteProduct(string productID)
     {
+        //TODO update Shelf as well
         try
         {
             _context.ProductRecord.DeleteOne(x => x.id == productID);
