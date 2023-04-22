@@ -1,17 +1,19 @@
 ﻿using SWH.Models;
 using SWH.Interfaces;
 using MongoDB.Driver;
+
 namespace SWH.Controllers;
 
 public class ProductController : IProduct
 {
-    DbContext context = new DbContext();
+    DbContext _context = new ();
+
     public async Task<List<Product>> GetAllProducts()
     {
         try
         {
-            var products = context.ProductRecord.Find(FilterDefinition<Product>.Empty).ToListAsync();
-            return await products;
+            var products = await _context.ProductRecord.Find(FilterDefinition<Product>.Empty).ToListAsync();
+            return products;
         }
         catch (Exception e)
         {
@@ -22,14 +24,12 @@ public class ProductController : IProduct
 
     public Product GetProduct(string productID)
     {
-        throw new NotImplementedException();
-    }
-
-    public async void AddProduct(Product product)
-    {
         try
         {
-            await context.ProductRecord.InsertOneAsync(product);
+            var product = _context.ProductRecord.Find(x => x.id == productID).FirstOrDefault();
+            product.ProductType =
+                _context.ProductTypeRecord.Find(x => x.id == product.ProductType.id).FirstOrDefault();
+            return product;
         }
         catch (Exception e)
         {
@@ -38,11 +38,32 @@ public class ProductController : IProduct
         }
     }
 
+    public void AddProduct(Product product, string productTypeID)
+    {
+        try
+        {
+            var productType = _context.ProductTypeRecord.Find(x => x.id == productTypeID).FirstOrDefault();
+            product.ProductType = productType;
+            //throw error if product type.MaxCapacity is reached
+            if (productType.MaxCapacity <= product.Quantity)
+            {
+                throw new Exception("Product Type Max Capacity Reached");
+            }
+            _context.ProductRecord.InsertOne(product);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+
     public async void UpdateProduct(Product product)
     {
         try
         {
-            await context.ProductRecord.ReplaceOneAsync(x => x.id == product.id, product);
+            await _context.ProductRecord.ReplaceOneAsync(x => x.id == product.id, product);
         }
         catch (Exception e)
         {
@@ -55,7 +76,7 @@ public class ProductController : IProduct
     {
         try
         {
-            context.ProductRecord.DeleteOne(x => x.id == productID);
+            _context.ProductRecord.DeleteOne(x => x.id == productID);
         }
         catch (Exception e)
         {
