@@ -6,7 +6,7 @@ public interface IShelf
 {
     public Task<List<Shelf>> GetAllShelves();
     public Shelf GetShelf(string shelfID);
-    public void AddShelf(Shelf shelf);
-    public void UpdateShelf(Shelf shelf);
+    public Task<string?> AddShelf(Shelf shelf);
+    public Task<string>? UpdateShelf(Shelf shelf);
     public void DeleteShelf(string shelfID);
 }

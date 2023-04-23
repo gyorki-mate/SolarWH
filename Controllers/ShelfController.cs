@@ -38,14 +38,13 @@ public class ShelfController : IShelf
         }
     }
 
-    public async void AddShelf(Shelf shelf)
+    public async Task<string?> AddShelf(Shelf shelf)
     {
-        // if (shelf.Quantity > shelf.Product.MaxQuantity)
-        // {
-        //     //throw exception, quantity is more than the maxquantity
-        //     throw new Exception("Quantity is more than the max quantity");
-        // }
-//TODO check if compartment is full
+        if (shelf.Compartments.SelectMany(c => c.Products)
+            .Any(product => product.Quantity > product.ProductType.MaxCapacity))
+        {
+            return "Quantity is more than the max quantity";
+        }
 
         try
         {
@@ -56,12 +55,19 @@ public class ShelfController : IShelf
             Console.WriteLine(e);
             throw;
         }
+
+        return null;
     }
 
-    public void UpdateShelf(Shelf shelf)
+    public Task<string>? UpdateShelf(Shelf shelf)
     {
         //TODO check if compartment is full
-
+        if (shelf.Compartments.SelectMany(c => c.Products)
+            .Any(product => product.Quantity > product.ProductType.MaxCapacity))
+        {
+            return Task.FromResult("Quantity is more than the max quantity");
+        }
+        
         try
         {
             _context.ShelfRecord.ReplaceOne(x => x.id == shelf.id, shelf);
@@ -71,13 +77,15 @@ public class ShelfController : IShelf
             Console.WriteLine(e);
             throw;
         }
+
+        return null;
     }
 
-    public void DeleteShelf(string shelfID)
+    public void DeleteShelf(string shelfId)
     {
         try
         {
-            _context.ShelfRecord.DeleteOne(x => x.id == shelfID);
+            _context.ShelfRecord.DeleteOne(x => x.id == shelfId);
         }
         catch (Exception e)
         {

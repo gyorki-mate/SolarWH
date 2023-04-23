@@ -15,6 +15,7 @@
 <MudButton OnClick="listProducts">list prod</MudButton>
 <MudButton OnClick="addShelf">add shelf</MudButton>
 <MudButton OnClick="listShelves">list shelf</MudButton>
+<MudButton OnClick="updateShelf">kill shelves update</MudButton>
 
 
 Welcome to your new app.
@@ -123,6 +124,14 @@ Welcome to your new app.
             }
         };
         ShelfController.AddShelf(s);
+    }
+
+    public void updateShelf()
+    {
+        var s = ShelfController.GetShelf("644418482949b7f4aa05aba6");
+        s.Compartments[0].Products[0].Quantity = 52;
+        var res = ShelfController.UpdateShelf(s);
+        Console.WriteLine(res);
     }
 
 }
