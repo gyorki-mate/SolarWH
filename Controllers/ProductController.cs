@@ -61,9 +61,11 @@ public class ProductController : IProduct
 
     public async void UpdateProduct(Product product)
     {
+        //only when taking away from chest
+        
         //TODO check if product type max capacity is reached
         //TODO update Shelf as well
-        
+        if (!product.isStored) throw new Exception("not_stored");
         try
         {
             await _context.ProductRecord.ReplaceOneAsync(x => x.id == product.id, product);

@@ -21,6 +21,7 @@ public class Project
     [BsonElement("status")] public string Status { get; set; } = "New";
 
     [BsonElement("cost")] public int Cost { get; set; } = 0;
+    [BsonElement("time")] public int Time { get; set; } = 0;
     
     [BsonElement("products")] public List<Tuple<ProductType,int>> Products { get; set; }
 }
