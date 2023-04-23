@@ -10,12 +10,21 @@
 <MudDialog>
     <DialogContent>
         <div class="d-flex flex-column py-1">
-            <MudSelect T="string" Label="Products" HelperText="Pick your favorite states with keys" MultiSelection="true" @bind-Value="value" @bind-SelectedValues="options">
-                @foreach (var product in _products)
-                {
-                    <MudSelectItem T="string" Value="@product.Name">@product.Name</MudSelectItem>
-                }
-            </MudSelect>
+            <MudForm @ref="form" @bind-IsValid="@_success">
+                <MudGrid>
+                    <MudItem xs="6">
+                        <MudSelect T="string" Label="Products" HelperText="Pick the desired Product" MultiSelection="false" @bind-Value="value" @bind-SelectedValues="options">
+                            @foreach (var product in _products)
+                            {
+                                <MudSelectItem T="string" Value="@product.Name">@product.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudNumericField @bind-Value="amount" Label="Amount" Variant="Variant.Text" Min="1" Max="9999"/>
+                    </MudItem>
+                </MudGrid>
+            </MudForm>
         </div>
     </DialogContent>
     <DialogActions>
@@ -24,19 +33,60 @@
 </MudDialog>
 
 @code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public string projectIndex { get; set; }
+
     private bool _success;
     List<ProductType> _products = new();
-    private List<ProductType> selectedItems = new();
     private string value { get; set; }
-    private IEnumerable<string> options { get; set; } = new List<string>() { "Alaska" };
+    private IEnumerable<string> options { get; set; } = new List<string>() { "" };
+    private Project _project;
+    
+    private int amount { get; set; }
+    private int itemMax { get; set; } = 64;
+
+    private string newSatus = "Draft";
+    private int newCost = 0;
+    private List<Tuple<ProductType, int>> newProducts = new();
+    
+    MudForm form;
 
     protected override async Task OnInitializedAsync()
     {
         _products = await ProductTypeController.GetAllProductTypes();
+        _project = ProjectController.GetProject(projectIndex);
     }
     
-    private void Close()
+    private async void Close()
     {
-        
+        try
+        {
+            var draftedProject = new Project
+            {
+                id = _project.id,
+                Name = _project.Name,
+                Location = _project.Description,
+                Description = _project.Description,
+                UserName = _project.UserName,
+                PhoneNumber = _project.PhoneNumber,
+                Status = newSatus,
+                Cost = newCost,
+                Products = newProducts
+            };
+            
+            DialogParameters parameters = new() { { "_content", "Are you sure you want to draft the project?" } };
+            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            var dialogResult = await result.Result;
+            if (dialogResult.Cancelled) return;
+            
+            ProjectController.UpdateProject(draftedProject);
+        }
+        catch (Exception e)
+        {//
+        }
+        MudDialog.Close(DialogResult.Ok(true));
     }
 }

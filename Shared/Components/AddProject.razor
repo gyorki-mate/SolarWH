@@ -30,7 +30,7 @@
     private string Description { get; set; }
     private string UserName { get; set; }
     private string PhoneNumber { get; set; }
-    private List<Product> Products { get; set; } = new();
+    private List<Tuple<ProductType,int>> Products { get; set; } = new();
 
     MudForm form;
     

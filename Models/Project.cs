@@ -6,7 +6,7 @@ namespace SWH.Models;
 public class Project
 {
     [BsonRepresentation(BsonType.ObjectId)]
-    public string id { get; private set; }
+    public string id { get; set; }
 
     [BsonElement("name")] public string Name { get; set; }
 
@@ -22,5 +22,5 @@ public class Project
 
     [BsonElement("cost")] public int Cost { get; set; } = 0;
     
-    [BsonElement("products")] public List<Product> Products { get; set; }
+    [BsonElement("products")] public List<Tuple<ProductType,int>> Products { get; set; }
 }

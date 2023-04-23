@@ -38,6 +38,7 @@
         <MudTh>
             <MudTableSortLabel SortBy="new Func<Project, object>(x => x.Status)">Project Status</MudTableSortLabel>
         </MudTh>
+        <MudTh> Project Information</MudTh>
         <MudTh> Draft Project</MudTh>
         <MudTh> Delete</MudTh>
     </HeaderContent>
@@ -45,6 +46,9 @@
         <MudTd DataLabel="name">@projectContext.Name</MudTd>
         <MudTd DataLabel="location">@projectContext.Location</MudTd>
         <MudTd DataLabel="status">@projectContext.Status</MudTd>
+        <MudTd DataLabel="info">
+            <MudIconButton Icon="@Icons.Filled.Info" Color="Color.Info" OnClick="@(() => { Information(projectContext.id); })"/>
+        </MudTd>
         <MudTd DataLabel="draft">
             <MudIconButton Icon="@Icons.Filled.Edit" OnClick="@(() => { DraftProject(projectContext.id); })"/>
         </MudTd>
@@ -100,11 +104,28 @@
     {
         try
         {
-            var res = DialogService.Show<DraftProject>("Draft Project");
+            DialogParameters parameters = new() { { "projectIndex", index } };
+            var res = DialogService.Show<DraftProject>("Draft Project", parameters);
+            var result = await res.Result;
+            if (result.Cancelled) return;
+            Snackbar.Add("Project drafted!", Severity.Info);
+            
         }
         catch (Exception e)
         {
             //ignored
+        }
+    }
+
+    private async void Information(string index)
+    {
+        try
+        {
+            
+        }
+        catch (Exception e)
+        {
+            //ignoted
         }
     }
     
