@@ -1,8 +1,13 @@
 ﻿<h3>Storage</h3>
 @page "/storage"
 @using SWH.Models
+@using SWH.Shared.Components
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
-<MudDropContainer T="DropItem" Items="_products" CanDropClass="mud-border-info" NoDropClass="mud-border-error" ItemsSelector="@((item,dropzone) => item.Identifier  == dropzone)" ItemDropped="ItemUpdated" Class="border-2 border-solid mud-border-lines-default">
+<MudButton OnClick="addProducts">New shipment</MudButton>
+
+<MudDropContainer T="DropItem" Items="_items" CanDropClass="mud-border-info" NoDropClass="mud-border-error" ItemsSelector="@((item,dropzone) => item.Identifier  == dropzone)" ItemDropped="ItemUpdated" Class="border-2 border-solid mud-border-lines-default">
     <ChildContent>
         <MudGrid Justify="Justify.Center">
             <MudItem xs="3">
@@ -35,23 +40,29 @@
         dropItem.Item.Identifier = dropItem.DropzoneIdentifier;
     }
 
-    private List<DropItem> _products = new()
-    {
-        new DropItem(){ Name = "Item 1", Identifier = "0" },
-        new DropItem(){ Name = "Item 1", Identifier = "0" },
-        new DropItem(){ Name = "Item 1", Identifier = "0" },
-        new DropItem(){ Name = "Item 1", Identifier = "0" },
-        new DropItem(){ Name = "Item 1", Identifier = "0" },
-        new DropItem(){ Name = "Item 1000000000000", Identifier = "0" },
-        new DropItem(){ Name = "Item 1", Identifier = "0" },
-        new DropItem(){ Name = "Item 1", Identifier = "0" },
-        new DropItem(){ Name = "Item 1", Identifier = "0" },
-        new DropItem(){ Name = "Item 3", Identifier = "0" }
-    };
-    
+    private List<DropItem> _items = new();
+
     public class DropItem
     {
-        public string Name { get; init; }
+        public string Name { get; set; }
         public string Identifier { get; set; }
     }
+    
+    private async void addProducts()
+    {
+        try
+        {
+            var res = DialogService.Show<NewShipmentDialog>("New Shipment");
+            var result = await res.Result;
+            if (result.Cancelled) return;
+            Snackbar.Add("Products added!", Severity.Info);
+            
+        }
+        catch (Exception e)
+        {
+    //ignored
+        }
+    }    
+    
 }
+

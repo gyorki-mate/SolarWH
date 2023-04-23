@@ -1,0 +1,78 @@
+﻿@using System.Text
+@using Controllers
+@using Models
+@using SWH.Pages
+@inject IDialogService DialogService
+@inject Interfaces.IProductType ProductTypeController;
+@inject ISnackbar Snackbar;
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex flex-column py-1">
+            <MudForm @ref="form" @bind-IsValid="@_success">
+                <MudGrid>
+                    <MudItem xs="6">
+                        <MudSelect T="string" Label="Products" HelperText="Pick the desired Product" MultiSelection="false" @bind-Value="value" @bind-SelectedValues="options">
+                            @foreach (var product in _products)
+                            {
+                                <MudSelectItem T="string" Value="@product.Name">@product.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudNumericField @bind-Value="amount" Label="Amount" Variant="Variant.Text" Min="1" Max="9999"/>
+                    </MudItem>
+                </MudGrid>
+            </MudForm>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Disabled="@(!_success)" Color="Color.Info" Variant="Variant.Filled" OnClick="Close">Add products</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+
+    private bool _success;
+    List<ProductType> _products = new();
+    private string value { get; set; }
+    private IEnumerable<string> options { get; set; } = new List<string>() { "" };
+
+    private int amount { get; set; }
+    private int itemMax { get; set; } = 64;
+    
+    private List<Tuple<ProductType, int>> newProducts = new();
+    
+    MudForm form;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _products = await ProductTypeController.GetAllProductTypes();
+    }
+    
+    private async void Close()
+    {
+        var newProduct = new Product
+        {
+            isStored = false,
+            Quantity = amount,
+            ContainerID = "0",
+            ProductType = _products.Find(x => x.Name == value)
+        };
+        
+        try
+        {
+            DialogParameters parameters = new() { { "_content", "Are you sure you want to add " + amount + " " + value + " to the storage?"} };
+            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            var dialogResult = await result.Result;
+            if (dialogResult.Cancelled) return;
+            // add new product to the database
+        }
+        catch (Exception e)
+        {//
+        }
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}
