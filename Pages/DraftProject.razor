@@ -36,7 +36,10 @@
         </MudItem>
         <MudSpacer/>
         <MudTooltip Class="align-content-lg-end" Text="Add product">
-            <MudIconButton OnClick="AddProduct" Icon="@Icons.Material.Outlined.Add" Size="Size.Large"/>
+            <MudIconButton OnClick="AddProduct" Icon="@Icons.Material.Outlined.Add" Size="Size.Medium"/>
+        </MudTooltip>
+        <MudTooltip Class="align-content-lg-end" Text="Draft project">
+            <MudIconButton OnClick="Draft" Icon="@Icons.Material.Outlined.Edit" Size="Size.Medium"/>
         </MudTooltip>
     </ToolBarContent>
     <HeaderContent>
@@ -61,8 +64,8 @@
     </RowTemplate>
     <RowEditingTemplate Context="productTypeContext">
         <MudTd DataLabel="name">@productTypeContext.productType.Name</MudTd>
-        <MudTd DataLabel="price"><MudNumericField @bind-Value="selectedItem.productType.Price" Required MaxLength="5" Min="0" Max="10000" Immediate/></MudTd>
-        <MudTd DataLabel="maxQuantity">@productTypeContext.Quantity</MudTd>
+        <MudTd DataLabel="price">@productTypeContext.productType.Price HUF</MudTd>
+        <MudTd DataLabel="quantity"><MudNumericField @bind-Value="selectedItem.Quantity" Required MaxLength="5" Min="1" Max="10000" Immediate/></MudTd>
     </RowEditingTemplate>
 </MudTable>
 
@@ -80,6 +83,7 @@
     private int newCost = 0;
     private List<ProjectProducts> _productList = new();
     private ProjectProducts selectedItem;
+    private ProjectProducts backup = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -92,6 +96,12 @@
     {
         try
         {
+            // if (_project.Products==_productList)
+            // {
+            //     Snackbar.Add("No changes were made!", Severity.Info);
+            //     NavManager.NavigateTo("/projects");
+            //     return;
+            // }
             var draftedProject = new Project
             {
                 id = _project.id,
@@ -109,7 +119,7 @@
             var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
             if (dialogResult.Cancelled) return;
-            
+            Snackbar.Add("Project successfully drafted!", Severity.Success);
             ProjectController.UpdateProject(draftedProject);
         }
         catch (Exception e)
@@ -151,19 +161,54 @@
         }
     }
     
-    private async void CommitEdit(object project)
+    private async void CommitEdit(object product)
     {
-        
+        try
+        {
+            DialogParameters parameters = new() { { "_content", "Are you sure you want to save your edit?" } };
+            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            var res = await result.Result;
+            Console.WriteLine(res.Cancelled);
+            if (res.Cancelled)
+            {
+                ResetItemToOriginalValues(product);
+                Snackbar.Add("Edit cancelled", Severity.Info);
+                Console.WriteLine("reset");
+            }
+            else
+            {
+                foreach (var prod in _productList)
+                {
+                    if (prod.productType.Name == ((ProjectProducts)product).productType.Name)
+                    {
+                        prod.Quantity = selectedItem.Quantity;
+                    }
+                }
+                Snackbar.Add("Successfully saved edit", Severity.Success);
+            }
+            _productList = _project.Products;
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+    //ignored
+        }
     }
     
     private void ResetItemToOriginalValues(object element)
     {
-        
+        ((ProjectProducts)element).productType.Name = backup.productType.Name;
+        ((ProjectProducts)element).productType.Price = backup.productType.Price;
+        ((ProjectProducts)element).Quantity = backup.Quantity;
     }
     
     private void Backup(object element)
     {
-        
+        backup = new ProjectProducts
+        {
+            productType = ((ProjectProducts)element).productType,
+            Quantity = ((ProjectProducts)element).Quantity
+        };
     }
     
     private bool FilterFunc1(ProjectProducts product) => FilterFunc(product, searchString1);
