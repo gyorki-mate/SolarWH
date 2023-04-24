@@ -3,12 +3,17 @@
 @using SWH.Models
 @using SWH.Interfaces
 @using SWH.Shared.Components
-@using MongoDB.Bson
+@using SWH.Shared.enums
 @inject IProductType ProductTypeController
+@inject IProduct ProductController
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject NavigationManager Nav;
 
-<MudTable Items="_productTypes" Dense="true" CanCancelEdit="true"
+<MudTable Items="_storage"
+          @ref="_table"
+          Dense="true" 
+          CanCancelEdit="true"
           @bind-SelectedItem="selectedItem"
           IsEditRowSwitchingBlocked="false"
           CommitEditTooltip="Commit Edit"
@@ -16,7 +21,7 @@
           RowEditCommit="CommitEdit"
           RowEditCancel="ResetItemToOriginalValues"
           RowEditPreview="Backup"
-          Filter="new Func<ProductType, bool>(FilterFunc1)">
+          Filter="new Func<Stock, bool>(FilterFunc1)">
 
     <ToolBarContent>
         <MudItem xs="6">
@@ -29,56 +34,77 @@
     </ToolBarContent>
     <HeaderContent>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<ProductType, object>(x => x.Name)">Product Name</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<Stock, object>(x => x.ProductType.Name)">Product Name</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<ProductType, object>(x => x.Price)">Price</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<Stock, object>(x => x.ProductType.Price)">Price</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<ProductType, object>(x => x.MaxCapacity)">Max Quantity</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<Stock, object>(x => x.ProductType.MaxCapacity)">Max Quantity</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Stock, object>(x => x.Quantity)">Current Storage</MudTableSortLabel>
         </MudTh>
         <MudTh> Delete</MudTh>
     </HeaderContent>
-    <RowTemplate Context="productTypeContext">
-        <MudTd DataLabel="name">@productTypeContext.Name</MudTd>
+    <RowTemplate Context="context">
+        <MudTd DataLabel="name">@context.ProductType.Name</MudTd>
         <MudTd DataLabel="price">
-            @productTypeContext.Price HUF
+            @context.ProductType.Price HUF
         </MudTd>
-        <MudTd DataLabel="maxQuantity">@productTypeContext.MaxCapacity</MudTd>
+        <MudTd DataLabel="maxQuantity">@context.ProductType.MaxCapacity</MudTd>
+        <MudTd DataLabel="Storage">@context.Quantity</MudTd>
         <MudTd DataLabel="del">
-            <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(productTypeContext.id); })"/>
+            <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(context.ProductType.id); })"/>
         </MudTd>
     </RowTemplate>
     <RowEditingTemplate Context="productTypeContext">
-        <MudTd DataLabel="name">@productTypeContext.Name</MudTd>
+        <MudTd DataLabel="name">@productTypeContext.ProductType.Name</MudTd>
         <MudTd DataLabel="price">
-            <MudNumericField @bind-Value="selectedItem.Price" Required MaxLength="5" Min="0" Max="10000" Immediate/>
+            <MudNumericField @bind-Value="selectedItem.ProductType.Price" Required MaxLength="5" Min="0" Max="10000" Immediate/>
         </MudTd>
-        <MudTd DataLabel="maxQuantity">@productTypeContext.MaxCapacity</MudTd>
+        <MudTd DataLabel="currentStock">@productTypeContext.Quantity</MudTd>
+        <MudTd DataLabel="maxQuantity">@productTypeContext.ProductType.MaxCapacity</MudTd>
     </RowEditingTemplate>
 </MudTable>
 
 @code {
 
+    private MudTable<Stock> _table;
     List<ProductType> _productTypes = new();
-    private ProductType backup = new();
-    private ProductType selectedItem;
+    List<Product> _products = new();
+    List<Stock> _storage = new();
+    private Stock backup = new();
+    private Stock selectedItem;
     private string searchString1 = "";
     DialogOptions smallWidth = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
 
     protected override async Task OnInitializedAsync()
     {
         _productTypes = await ProductTypeController.GetAllProductTypes();
+        _products = await ProductController.GetAllProducts();
+
+    //for each item in storage have the product type and for every product that has the same product type add the quantity to the stock
+        foreach (var stock in _productTypes.Select(productType => new Stock { ProductType = productType }))
+        {
+            foreach (var product in _products.Where(product => product.ProductType.Name == stock.ProductType.Name))
+            {
+                stock.Quantity += product.Quantity;
+            }
+
+            _storage.Add(stock);
+        }
     }
+
 
     private async void AddProduct()
     {
-        var res = DialogService.Show<AddProduct>("Add new Product type", smallWidth);
+        var res = await DialogService.ShowAsync<AddProduct>("Add new Product type", smallWidth);
         var result = await res.Result;
         if (result.Data is null) return;
         _productTypes = await ProductTypeController.GetAllProductTypes();
-        Snackbar.Add("Product type added!", Severity.Success);
-        StateHasChanged();
+        Nav.NavigateTo(Nav.Uri,forceLoad:true);
+        
     }
 
     private async void DeleteProduct(string index)
@@ -86,13 +112,13 @@
         try
         {
             DialogParameters parameters = new() { { "_content", "Are you sure you want to delete this product type?\n It can not be undone!" } };
-            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
-            if (dialogResult.Cancelled) return;
+            if (dialogResult.Canceled) return;
             ProductTypeController.DeleteProductType(index);
-            Snackbar.Add("Product type deleted!", Severity.Success);
             _productTypes = await ProductTypeController.GetAllProductTypes();
-            StateHasChanged();
+            Nav.NavigateTo(Nav.Uri,forceLoad:true);
+    
         }
         catch (Exception e)
         {
@@ -102,20 +128,20 @@
 
     private async void CommitEdit(object productType)
     {
-        Console.WriteLine(((ProductType)productType).Price);
         try
         {
             DialogParameters parameters = new() { { "_content", "Are you sure you want to save?" } };
-            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var res = await result.Result;
-            if (res.Cancelled)
+            if (res.Canceled)
             {
                 ResetItemToOriginalValues(productType);
                 Snackbar.Add("Edit cancelled", Severity.Info);
             }
             else
             {
-                ProductTypeController.UpdateProductType((ProductType)productType);
+                var prodType = productType as Stock;
+                if (prodType?.ProductType != null) ProductTypeController.UpdateProductType(prodType?.ProductType!);
                 Snackbar.Add("Successfully saved edit", Severity.Success);
             }
             _productTypes = await ProductTypeController.GetAllProductTypes();
@@ -129,27 +155,24 @@
 
     private void ResetItemToOriginalValues(object element)
     {
-        Console.WriteLine(backup.Price);
-        ((ProductType)element).Name = backup.Name;
-        ((ProductType)element).Price = backup.Price;
-        ((ProductType)element).MaxCapacity = backup.MaxCapacity;
+        ((Stock)element).ProductType = backup.ProductType;
+        ((Stock)element).Quantity = backup.Quantity;
     }
 
     private void Backup(object element)
     {
-        backup = new ProductType
+        backup = new Stock()
         {
-            Name = ((ProductType)element).Name,
-            Price = ((ProductType)element).Price,
-            MaxCapacity = ((ProductType)element).MaxCapacity
+            ProductType = ((Stock)element).ProductType,
+            Quantity = ((Stock)element).Quantity,
         };
     }
 
-    private bool FilterFunc1(ProductType product) => FilterFunc(product, searchString1);
+    private bool FilterFunc1(Stock stock) => FilterFunc(stock, searchString1);
 
-    private bool FilterFunc(ProductType product, string searchString)
+    private bool FilterFunc(Stock stock, string searchString)
     {
-        return string.IsNullOrWhiteSpace(searchString) || product.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
+        return string.IsNullOrWhiteSpace(searchString) || stock.ProductType.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
     }
 
 }

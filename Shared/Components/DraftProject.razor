@@ -80,7 +80,7 @@
             DialogParameters parameters = new() { { "_content", "Are you sure you want to draft the project?" } };
             var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
-            if (dialogResult.Cancelled) return;
+            if (dialogResult.Canceled) return;
             
             ProjectController.UpdateProject(draftedProject);
         }

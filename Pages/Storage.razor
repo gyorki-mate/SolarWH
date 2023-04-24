@@ -54,7 +54,7 @@
         {
             var res = DialogService.Show<NewShipmentDialog>("New Shipment");
             var result = await res.Result;
-            if (result.Cancelled) return;
+            if (result.Canceled) return;
             Snackbar.Add("Products added!", Severity.Info);
             
         }

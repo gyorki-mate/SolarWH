@@ -67,7 +67,7 @@
             DialogParameters parameters = new() { { "_content", "Are you sure you want to add " + amount + " " + value + " to the storage?"} };
             var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
-            if (dialogResult.Cancelled) return;
+            if (dialogResult.Canceled) return;
             // add new product to the database
         }
         catch (Exception e)
