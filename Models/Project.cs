@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using SWH.Shared.enums;
 
 namespace SWH.Models;
 
@@ -23,5 +24,5 @@ public class Project
     [BsonElement("cost")] public int Cost { get; set; } = 0;
     [BsonElement("time")] public int Time { get; set; } = 0;
     
-    [BsonElement("products")] public List<Tuple<ProductType,int>> Products { get; set; }
+    [BsonElement("products")] public List<ProjectProducts> Products { get; set; }
 }

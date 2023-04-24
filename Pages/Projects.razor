@@ -7,6 +7,7 @@
 @inject IProject ProjectController
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject NavigationManager NavManager
 
 <MudTable Items="_projects" Dense="true" 
           CanCancelEdit="true"
@@ -25,7 +26,7 @@
         </MudItem>
         <MudSpacer/>
         <MudTooltip Class="align-content-lg-end" Text="Add project">
-            <MudIconButton OnClick="AddProject" Icon="@Icons.Material.Outlined.Add" Size="Size.Large"/>
+            <MudIconButton OnClick="AddProject" Icon="@Icons.Material.Outlined.Add" Size="Size.Medium"/>
         </MudTooltip>
     </ToolBarContent>
     <HeaderContent>
@@ -73,7 +74,7 @@
     
     private async void AddProject()
     {
-        var res = DialogService.Show<AddProject>("Add new Product", smallWidth);
+        var res = await DialogService.ShowAsync<AddProject>("Add new Product", smallWidth);
         var result = await res.Result;
         if (result.Data is null) return;
         _projects = await ProjectController.GetAllProjects();
@@ -102,19 +103,7 @@
 
     private async void DraftProject(string index)
     {
-        try
-        {
-            DialogParameters parameters = new() { { "projectIndex", index } };
-            var res = DialogService.Show<DraftProject>("Draft Project", parameters);
-            var result = await res.Result;
-            if (result.Canceled) return;
-            Snackbar.Add("Project drafted!", Severity.Info);
-            
-        }
-        catch (Exception e)
-        {
-            //ignored
-        }
+        NavManager.NavigateTo($"projects/draft/{index}");
     }
 
     private async void Information(string index)

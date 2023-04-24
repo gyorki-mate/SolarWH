@@ -1,5 +1,6 @@
 ﻿@using Models
 @using SWH.Interfaces
+@using SWH.Shared.enums
 @inject IDialogService DialogService
 @inject IProject ProjectController
 
@@ -30,7 +31,7 @@
     private string Description { get; set; }
     private string UserName { get; set; }
     private string PhoneNumber { get; set; }
-    private List<Tuple<ProductType,int>> Products { get; set; } = new();
+    private List<ProjectProducts> Products { get; set; } = new();
 
     MudForm form;
     

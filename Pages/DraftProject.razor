@@ -1,0 +1,220 @@
+﻿@page "/projects/draft/{projectIndex}"
+@using SWH.Models
+@using SWH.Interfaces
+@using SWH.Shared.Components
+@using MongoDB.Bson
+@using SWH.Shared.enums
+@inject IDialogService DialogService
+@inject Interfaces.IProject ProjectController;
+@inject Interfaces.IProductType ProductTypeController;
+@inject ISnackbar Snackbar;
+@inject NavigationManager NavManager
+
+
+<h3>Drafting Project: @projectIndex</h3>
+
+@* <MudSelect T="string" Label="US States" MultiSelection="true" @bind-Value="value" @bind-SelectedValues="options"> *@
+@*     @foreach (var product in _products) *@
+@*     { *@
+@*         <MudSelectItem T="string" Value="@product.Name">@product.Name</MudSelectItem> *@
+@*     } *@
+@* </MudSelect> *@
+
+<MudTable Items="_productList" Dense="true" CanCancelEdit="true"
+          @bind-SelectedItem="selectedItem"
+          IsEditRowSwitchingBlocked="false"
+          CommitEditTooltip="Commit Edit"
+          CancelEditTooltip="Cancel Edit"
+          RowEditCommit="CommitEdit"
+          RowEditCancel="ResetItemToOriginalValues"
+          RowEditPreview="Backup"
+          Filter="new Func<ProjectProducts, bool>(FilterFunc1)">
+
+    <ToolBarContent>
+        <MudItem xs="6">
+            <MudTextField @bind-Value="searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" MaxLength="45" Clearable/>
+        </MudItem>
+        <MudSpacer/>
+        <MudTooltip Class="align-content-lg-end" Text="Add product">
+            <MudIconButton OnClick="AddProduct" Icon="@Icons.Material.Outlined.Add" Size="Size.Medium"/>
+        </MudTooltip>
+        <MudTooltip Class="align-content-lg-end" Text="Draft project">
+            <MudIconButton OnClick="Draft" Icon="@Icons.Material.Outlined.Edit" Size="Size.Medium"/>
+        </MudTooltip>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<ProjectProducts, object>(x => x.productType.Name)">Product Name</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<ProjectProducts, object>(x => x.productType.Price)">Product Price</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<ProjectProducts, object>(x => x.Quantity)">Required Amount</MudTableSortLabel>
+        </MudTh>
+        <MudTh> Delete</MudTh>
+    </HeaderContent>
+    <RowTemplate Context="productListContext">
+        <MudTd DataLabel="name">@productListContext.productType.Name</MudTd>
+        <MudTd DataLabel="price">@productListContext.productType.Price HUF</MudTd>
+        <MudTd DataLabel="quantity">@productListContext.Quantity</MudTd>
+        <MudTd DataLabel="del">
+            <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(productListContext.productType.Name); })"/>
+        </MudTd>
+    </RowTemplate>
+    <RowEditingTemplate Context="productTypeContext">
+        <MudTd DataLabel="name">@productTypeContext.productType.Name</MudTd>
+        <MudTd DataLabel="price">@productTypeContext.productType.Price HUF</MudTd>
+        <MudTd DataLabel="quantity"><MudNumericField @bind-Value="selectedItem.Quantity" Required MaxLength="5" Min="1" Max="10000" Immediate/></MudTd>
+    </RowEditingTemplate>
+</MudTable>
+
+@code {
+    [Parameter]
+    public string projectIndex { get; set; }
+
+    //List<ProductType> _products = new();
+
+    private IEnumerable<ProductType> _products { get; set; } = new List<ProductType>();
+
+    private Project _project;
+    private string searchString1 = "";
+    private string newSatus = "Draft";
+    private int newCost = 0;
+    private List<ProjectProducts> _productList = new();
+    private ProjectProducts selectedItem;
+    private ProjectProducts backup = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _products = await ProductTypeController.GetAllProductTypes();
+        _project = ProjectController.GetProject(projectIndex);
+        _productList = _project.Products;
+    }
+    
+    private async void Draft()
+    {
+        try
+        {
+            // if (_project.Products==_productList)
+            // {
+            //     Snackbar.Add("No changes were made!", Severity.Info);
+            //     NavManager.NavigateTo("/projects");
+            //     return;
+            // }
+            var draftedProject = new Project
+            {
+                id = _project.id,
+                Name = _project.Name,
+                Location = _project.Description,
+                Description = _project.Description,
+                UserName = _project.UserName,
+                PhoneNumber = _project.PhoneNumber,
+                Status = newSatus,
+                Cost = newCost,
+                Products = _productList
+            };
+            
+            DialogParameters parameters = new() { { "_content", "Are you sure you want to draft the project?" } };
+            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            var dialogResult = await result.Result;
+            if (dialogResult.Cancelled) return;
+            Snackbar.Add("Project successfully drafted!", Severity.Success);
+            ProjectController.UpdateProject(draftedProject);
+        }
+        catch (Exception e)
+        {//
+        }
+        NavManager.NavigateTo("/projects");
+    }
+    
+    private async void AddProduct()
+    {
+        DialogParameters parameters = new() { { "productsList", _productList } };
+        var res = DialogService.Show<AddProductToDraft>("Add new Product for Draft", parameters);
+        var result = await res.Result;
+        if (result.Data is null) return;
+        //_productList = _project.Products;
+        Snackbar.Add("Product added to draft!", Severity.Success);
+        StateHasChanged();
+    }
+    
+    private async void DeleteProduct(string name)
+    {
+        try
+        {
+            DialogParameters parameters = new() { { "_content", "Are you sure you want to delete this product from the draft?" } };
+            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            var dialogResult = await result.Result;
+            if (dialogResult.Cancelled) return;
+            foreach (var product in _productList)
+            {
+                if (product.productType.Name == name) _productList.Remove(product);
+            }
+            Snackbar.Add("Product deleted!", Severity.Success);
+            _productList = _project.Products;
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+    //ignored
+        }
+    }
+    
+    private async void CommitEdit(object product)
+    {
+        try
+        {
+            DialogParameters parameters = new() { { "_content", "Are you sure you want to save your edit?" } };
+            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            var res = await result.Result;
+            Console.WriteLine(res.Cancelled);
+            if (res.Cancelled)
+            {
+                ResetItemToOriginalValues(product);
+                Snackbar.Add("Edit cancelled", Severity.Info);
+                Console.WriteLine("reset");
+            }
+            else
+            {
+                foreach (var prod in _productList)
+                {
+                    if (prod.productType.Name == ((ProjectProducts)product).productType.Name)
+                    {
+                        prod.Quantity = selectedItem.Quantity;
+                    }
+                }
+                Snackbar.Add("Successfully saved edit", Severity.Success);
+            }
+            _productList = _project.Products;
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+    //ignored
+        }
+    }
+    
+    private void ResetItemToOriginalValues(object element)
+    {
+        ((ProjectProducts)element).productType.Name = backup.productType.Name;
+        ((ProjectProducts)element).productType.Price = backup.productType.Price;
+        ((ProjectProducts)element).Quantity = backup.Quantity;
+    }
+    
+    private void Backup(object element)
+    {
+        backup = new ProjectProducts
+        {
+            productType = ((ProjectProducts)element).productType,
+            Quantity = ((ProjectProducts)element).Quantity
+        };
+    }
+    
+    private bool FilterFunc1(ProjectProducts product) => FilterFunc(product, searchString1);
+
+    private bool FilterFunc(ProjectProducts product, string searchString)
+    {
+        return string.IsNullOrWhiteSpace(searchString) || product.productType.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
+    }
+}
