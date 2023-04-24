@@ -1,0 +1,91 @@
+﻿@using Models
+@using MongoDB.Driver.Linq
+@using SWH.Interfaces
+@using SWH.Shared.enums
+@inject IDialogService DialogService
+@inject Interfaces.IProject ProjectController;
+@inject Interfaces.IProductType ProductTypeController;
+
+<MudDialog>
+    <DialogContent>
+        <div class="d-flex flex-column py-1">
+            <MudForm @bind-IsValid="@_success" @ref="form">
+                <MudSelect Label="Products" @bind-Value="_product" Required>
+                    @foreach (var product in _products)
+                    {
+                        if (!containsList.Contains(product.Name))
+                        {
+                            <MudSelectItem Value="@product">@product.Name</MudSelectItem>
+                        }
+                    }
+                </MudSelect>
+                <MudNumericField Required="true" @bind-Value="_quantity" Label="Required Quantity" Variant="Variant.Text" Min="1" />
+            </MudForm>
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Disabled="@(!_success)" Color="Color.Info" Variant="Variant.Filled" OnClick="Close">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+    
+    [Parameter]
+    public List<ProjectProducts> productsList { get; set; }
+
+    private List<string> containsList { get; set; } = new ();
+
+    private List<ProductType> _products = new();
+    private bool _success;
+    private ProductType _product;
+    private int _quantity;
+    
+    MudForm form;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _products = await ProductTypeController.GetAllProductTypes();
+        foreach (var product in productsList)
+        {
+            containsList.Add(product.productType.Name);
+        }
+    }
+    
+    async void Close()
+    {
+        try
+        {
+            DialogParameters parameters = new() { { "_content", "Are you sure you want to add this product to the draft?" } };
+            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            var res = await result.Result;
+            if (res.Data.Equals(true)) addProduct();
+        }
+        catch (Exception e)
+        {
+    //Ignored
+        }
+        
+    }
+    
+    private void addProduct()
+    {
+        try
+        {
+            ProjectProducts newProduct = new()
+            {
+                productType = _product,
+                Quantity = _quantity
+            };
+
+            productsList.Add(newProduct);
+            MudDialog.Close(true);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+}
