@@ -94,6 +94,7 @@ Current Cost: @_newCost
     private string _searchString1 = "";
     private string _newStatus = "Draft";
     private int _newCost;
+    private DateOnly _estimatedDate;
     List<Stock> _storage = new();
     private List<ProjectProducts> _productList = new();
     private ProjectProducts _selectedItem;
@@ -107,6 +108,7 @@ Current Cost: @_newCost
         _productList = _project.Products;
         _newCost = _project.Cost;
         _projectName = _project.Name;
+        _estimatedDate = _project.UpdatedAt.AddDays(14);
 
         foreach (var stock in _productTypes.Select(productType => new Stock { ProductType = productType }))
         {
@@ -130,6 +132,7 @@ Current Cost: @_newCost
                 foreach (var stock in _storage.Where(stock => product.productType.Name == stock.ProductType.Name && product.Quantity > stock.Quantity))
                 {
                     _newStatus = "Wait";
+                    _estimatedDate = _project.UpdatedAt.AddDays(21);
                 }
             }
             var draftedProject = new Project
@@ -142,7 +145,10 @@ Current Cost: @_newCost
                 PhoneNumber = _project.PhoneNumber,
                 Status = _newStatus,
                 Cost = _newCost,
-                Products = _productList
+                Products = _productList,
+                EstimatedDate = _estimatedDate,
+                UpdatedAt = DateOnly.FromDateTime(DateTime.Now),
+                CreatedAt = _project.CreatedAt
             };
 
             DialogParameters parameters = new() { { "_content", "Are you sure you want to draft the project?" } };

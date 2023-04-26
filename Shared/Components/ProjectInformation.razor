@@ -1,0 +1,57 @@
+﻿@using SWH.Models
+@using SWH.Interfaces
+@inject IProject projectService
+
+<MudDialog>
+    <DialogContent>
+        <MudTextField @bind-Value="name" HelperText="Project Name" Variant="Variant.Text" ReadOnly="true"/>
+        <MudTextField @bind-Value="location" HelperText="Location" Variant="Variant.Text" ReadOnly="true"/>
+        <MudTextField @bind-Value="description" HelperText="Description" Variant="Variant.Text" ReadOnly="true"/>
+        <MudTextField @bind-Value="userName" HelperText="Expert" Variant="Variant.Text" ReadOnly="true"/>
+        <MudTextField @bind-Value="phoneNumber" HelperText="Phone Number" Variant="Variant.Text" ReadOnly="true"/>
+        <MudTextField @bind-Value="cost" HelperText="Cost" Variant="Variant.Text" ReadOnly="true"/>
+        <MudTextField @bind-Value="createdDate" HelperText="Created Date" Variant="Variant.Text" ReadOnly="true"/>
+        <MudTextField @bind-Value="estimatedDate" HelperText="Estimated Date" Variant="Variant.Text" ReadOnly="true"/>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Info" Variant="Variant.Filled" OnClick="Close">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; }
+    
+    [Parameter]
+    public string index { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        project = projectService.GetProject(index);
+        location = project.Location;
+        description = project.Description;
+        userName = project.UserName;
+        phoneNumber = project.PhoneNumber;
+        cost = project.Cost;
+        createdDate = project.CreatedAt;
+        estimatedDate = project.EstimatedDate;
+        name = project.Name;
+    }
+    
+    private Project project { get; set; }
+
+    private string name { get; set; }
+    private string location { get; set; }
+    private string description { get; set; }
+    private string userName { get; set; }
+    private string phoneNumber { get; set; }
+    private int cost { get; set; }
+    private DateOnly createdDate { get; set; }
+    private DateOnly estimatedDate { get; set; }
+    
+    private void Close()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+    
+}

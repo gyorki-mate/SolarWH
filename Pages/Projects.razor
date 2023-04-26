@@ -104,12 +104,20 @@
     {
         NavManager.NavigateTo($"projects/draft/{index}");
     }
+    
+    
 
     private async void Information(string index)
     {
         try
         {
-            
+            DialogParameters parameters = new()
+            {
+                {"index", index}
+            };
+            var result = await DialogService.ShowAsync<ProjectInformation>("Project Information", parameters);
+            var res = await result.Result;
+            if (res.Canceled) return;
         }
         catch (Exception e)
         {

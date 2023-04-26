@@ -4,6 +4,7 @@ using SWH.Models;
 
 namespace SWH.Controllers;
 
+
 public class ProjectController : IProject
 {
     DbContext context = new DbContext();
@@ -40,6 +41,9 @@ public class ProjectController : IProject
     {
         try
         {
+            project.CreatedAt = DateOnly.FromDateTime(DateTime.Now);
+            project.UpdatedAt = DateOnly.FromDateTime(DateTime.Now);
+
             await context.ProjectRecord.InsertOneAsync(project);
         }
         catch (Exception e)
@@ -53,6 +57,7 @@ public class ProjectController : IProject
     {
         try
         {
+            project.UpdatedAt = DateOnly.FromDateTime(DateTime.Now);
             await context.ProjectRecord.ReplaceOneAsync(x => x.id == project.id, project);
         }
         catch (Exception e)
