@@ -1,68 +1,33 @@
-﻿<h3>Storage</h3>
-@page "/storage"
-@using SWH.Models
-@using SWH.Shared.Components
+﻿@page "/storage"
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
-<MudButton OnClick="addProducts">New shipment</MudButton>
-
-<MudDropContainer T="DropItem" Items="_items" CanDropClass="mud-border-info" NoDropClass="mud-border-error" ItemsSelector="@((item,dropzone) => item.Identifier  == dropzone)" ItemDropped="ItemUpdated" Class="border-2 border-solid mud-border-lines-default">
-    <ChildContent>
-        <MudGrid Justify="Justify.Center">
-            <MudItem xs="3">
-                <MudDropZone T="DropItem" Identifier="0" DraggingClass="mud-alert-text-info" ItemDraggingClass="mud-alert-text-info" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8">
-                    <MudText Typo="Typo.h6" Class="mb-4">Unstored Products</MudText>
-                </MudDropZone>
-            </MudItem>
-            <MudItem xs="9">
-                @for (int r = 0; r < 6; r++) {
-                    var row = r.ToString();
-                    <div class="d-flex">
-                        @for (int c = 0; c < 6; c++) {
-                        var col = c.ToString();
-                        
-                        <MudDropZone T="DropItem" Identifier="@($"{row}{col}")" DraggingClass="mud-alert-text-info" Class="d-flex justify-center align-center border-2 border-solid docs-gray-bg mud-border-lines-default" Style="height:96px;width:16.33%;"/>
-                        }
-                    </div>
+<MudTabs Elevation="4" Rounded="true" Color="@Color.Dark" Class="mt-3" @bind-ActivePanelIndex="_activeTabIndex">
+    @for (int s = 0; s < 8; s++)
+    {
+        var shelfText = "Shelf " + (s + 1).ToString();
+        <MudTabPanel Text="@shelfText">
+            <MudGrid Class="mt-3">
+                @for (int r = 0; r < 6; r++)
+                {
+                    @for (int c = 0; c < 6; c++)
+                    {
+                        var containerID = ((r * 6 + (c + 1)) + (36 * _activeTabIndex));
+                        var containerText = "Container " + containerID.ToString();
+                        <MudItem xs="2">
+                            <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">
+                                <MudText>@containerText</MudText>
+                                <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Outlined" Color="Color.Success" Size="Size.Small" Class="ml-3"/>
+                            </MudPaper>
+                        </MudItem>
+                    }
                 }
-            </MudItem>
-        </MudGrid>
-    </ChildContent>
-    <ItemRenderer>
-        <MudPaper Class="pa-4 rounded-lg my-3">@context.Name</MudPaper>
-    </ItemRenderer>
-</MudDropContainer>
+            </MudGrid>
+        </MudTabPanel>
+    }
+</MudTabs>
 
 @code {
-    private void ItemUpdated(MudItemDropInfo<DropItem> dropItem)
-    {
-        dropItem.Item.Identifier = dropItem.DropzoneIdentifier;
-    }
-
-    private List<DropItem> _items = new();
-
-    public class DropItem
-    {
-        public string Name { get; set; }
-        public string Identifier { get; set; }
-    }
-    
-    private async void addProducts()
-    {
-        try
-        {
-            var res = DialogService.Show<NewShipmentDialog>("New Shipment");
-            var result = await res.Result;
-            if (result.Canceled) return;
-            Snackbar.Add("Products added!", Severity.Info);
-            
-        }
-        catch (Exception e)
-        {
-    //ignored
-        }
-    }    
-    
+    private int _activeTabIndex;
 }
 
