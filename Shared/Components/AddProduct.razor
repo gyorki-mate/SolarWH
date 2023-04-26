@@ -58,7 +58,7 @@
         {
             if (ProductTypes.Any(prodType => ProductName == prodType.Name))
             {
-                MudDialog.Close("Product type already exists");
+                MudDialog.Close(DialogResult.Ok("Product type already exists"));
                 return;
             }
             ProductType productType = new()
@@ -69,7 +69,7 @@
             };
 
             ProductTypeController.AddProductType(productType);
-            MudDialog.Close(true);
+            MudDialog.Close(DialogResult.Ok(productType)); 
         }
         catch (Exception e)
         {

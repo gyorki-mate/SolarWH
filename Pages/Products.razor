@@ -101,13 +101,17 @@
     {
         var res = await DialogService.ShowAsync<AddProduct>("Add new Product type", smallWidth);
         var result = await res.Result;
-        if (!result.Data.Equals(true))
+        Console.WriteLine(result.Data.GetType());
+        if (!result.Data.Equals(typeof(ProductType)))
         {
             Snackbar.Add(result.Data.ToString(), Severity.Error);
             return;
         }
         _productTypes = await ProductTypeController.GetAllProductTypes();
-        Nav.NavigateTo(Nav.Uri,forceLoad:true);
+        _products = await ProductController.GetAllProducts();
+        _storage.Add(new  Stock { ProductType = result.Data as ProductType });
+        StateHasChanged();
+        // Nav.NavigateTo(Nav.Uri,forceLoad:true);
         
     }
 
