@@ -8,6 +8,19 @@ public class ProductController : IProduct
 {
     private readonly DbContext _context = new();
 
+    public async Task<List<Product>> GetAllNonStoredProducts()
+    {
+        try
+        {
+            var products = await _context.ProductRecord.Find(x => x.IsStored == false).ToListAsync();
+            return products;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
     public async Task<List<Product>> GetAllProducts()
     {
         try
@@ -26,7 +39,7 @@ public class ProductController : IProduct
     {
         try
         {
-            var product = _context.ProductRecord.Find(x => x.id == productId).FirstOrDefault();
+            var product = _context.ProductRecord.Find(x => x.Id == productId).FirstOrDefault();
             product.ProductType =
                 _context.ProductTypeRecord.Find(x => x.id == product.ProductType.id).FirstOrDefault();
             return product;
@@ -65,10 +78,10 @@ public class ProductController : IProduct
         
         //TODO check if product type max capacity is reached
         //TODO update Shelf as well
-        if (!product.isStored) throw new Exception("not_stored");
+        if (!product.IsStored) throw new Exception("not_stored");
         try
         {
-            await _context.ProductRecord.ReplaceOneAsync(x => x.id == product.id, product);
+            await _context.ProductRecord.ReplaceOneAsync(x => x.Id == product.Id, product);
         }
         catch (Exception e)
         {
@@ -82,8 +95,8 @@ public class ProductController : IProduct
         try
         {
             //TODO update Shelf as well
-            _context.ShelfRecord.DeleteOne(x => x.Compartments.Any(c => c.Products.Any(p => p.id == productId)));
-            _context.ProductRecord.DeleteOne(x => x.id == productId);
+            _context.CompartmentRecord.DeleteOne(x => x.Shelves.Any(c => c.Product.Id == productId));
+            _context.ProductRecord.DeleteOne(x => x.Id == productId);
         }
         catch (Exception e)
         {

@@ -2,27 +2,29 @@
 @using SWH.Models
 @using SWH.Interfaces
 @using SWH.Shared.enums
+@using Shelf = SWH.Shared.enums.Shelf
 @inject IProduct ProductController
 @inject IProductType ProductTypeController
-@inject IShelf ShelfController
+@inject ICompartment CompartmentController
 
 
 <PageTitle>Index</PageTitle>
 
 <h1>Hello, world!</h1>
-<MudButton OnClick="addProductType">add productType</MudButton>
-<MudButton OnClick="addProduct">add prod</MudButton>
-<MudButton OnClick="listProducts">list prod</MudButton>
-<MudButton OnClick="addShelf">add shelf</MudButton>
-<MudButton OnClick="listShelves">list shelf</MudButton>
-<MudButton OnClick="updateShelf">kill shelves update</MudButton>
+@* <MudButton OnClick="addProductType">add productType</MudButton> *@
+@* <MudButton OnClick="addProduct">add prod</MudButton> *@
+@* <MudButton OnClick="listProducts">list prod</MudButton> *@
+@* <MudButton OnClick="addShelf">add shelf</MudButton> *@
+@* <MudButton OnClick="listShelves">list shelf</MudButton> *@
+@* <MudButton OnClick="updateShelf">kill shelves update</MudButton> *@
+<MudButton OnClick="addCompartment">add compartment</MudButton>
 
 
 Welcome to your new app.
 
 @code{
     List<Product> _products = new();
-    List<Shelf> _shelves = new();
+    List<Models.Compartment> _shelves = new();
     List<ProductType> _productTypes = new();
 
     public void addProductType()
@@ -59,79 +61,87 @@ Welcome to your new app.
 
     public async void listShelves()
     {
-        var list = await ShelfController.GetAllShelves();
+    // var list = await CompartmentController.GetAllShelves();
     // Console.WriteLine(list);
-        foreach (var p in list)
-        {
-            Console.WriteLine(p.column + " " + p.row);
-            Console.WriteLine(p.id);
-        }
     }
 
-    public void addShelf()
+    // public void addShelf()
+    // {
+    //     Models.Compartment s = new()
+    //     {
+    //         column = 0,
+    //         row = 0,
+    // //add to Compartments list
+    //         Compartments = new List<Shelf>()
+    //         {
+    //             new Shelf()
+    //             {
+    //                 id = 1,
+    //                 Products = new List<Product>()
+    //                 {
+    //                     new Product()
+    //                     {
+    //                         Quantity = 1,
+    //                         ProductType = new ProductType()
+    //                         {
+    //                             Name = "Iron",
+    //                             Price = 750,
+    //                             MaxCapacity = 8
+    //                         }
+    //                     }
+    //                 },
+    //             },
+    //             new Shelf()
+    //             {
+    //                 id = 2,
+    //                 Products = new List<Product>()
+    //                 {
+    //                     new Product()
+    //                     {
+    //                         Quantity = 7,
+    //                         ProductType = new ProductType()
+    //                         {
+    //                             Name = "asd",
+    //                             Price = 150,
+    //                             MaxCapacity = 8
+    //                         }
+    //                     },
+    //                     new Product()
+    //                     {
+    //                         Quantity = 1,
+    //                         ProductType = new ProductType()
+    //                         {
+    //                             Name = "asd",
+    //                             Price = 150,
+    //                             MaxCapacity = 8
+    //                         }
+    //                     }
+    //                 },
+    //             },
+    //         }
+    //     };
+    //     // CompartmentController.AddShelf(s);
+    // }
+
+    public async void addCompartment()
     {
-        Shelf s = new()
+    //create 16 shelves in the Shelves list
+        var compartments = await CompartmentController.GetAllCompartments();
+        List<Shelf> shelves = new();
+        for (int i = 0; i < 16; i++)
         {
-            column = 0,
-            row = 0,
-    //add to Compartments list
-            Compartments = new List<Compartment>()
+            Shelf s = new()
             {
-                new Compartment()
-                {
-                    id = 1,
-                    Products = new List<Product>()
-                    {
-                        new Product()
-                        {
-                            Quantity = 1,
-                            ProductType = new ProductType()
-                            {
-                                Name = "Iron",
-                                Price = 750,
-                                MaxCapacity = 8
-                            }
-                        }
-                    },
-                },
-                new Compartment()
-                {
-                    id = 2,
-                    Products = new List<Product>()
-                    {
-                        new Product()
-                        {
-                            Quantity = 7,
-                            ProductType = new ProductType()
-                            {
-                                Name = "asd",
-                                Price = 150,
-                                MaxCapacity = 8
-                            }
-                        },
-                        new Product()
-                        {
-                            Quantity = 1,
-                            ProductType = new ProductType()
-                            {
-                                Name = "asd",
-                                Price = 150,
-                                MaxCapacity = 8
-                            }
-                        }
-                    },
-                },
-            }
+                shelfId = i + 1 + compartments.Count * 16,
+            };
+            shelves.Add(s);
+        }
+        Compartment c = new()
+        {
+            Shelves = shelves,
+            compartmentId = compartments.Count + 1,
         };
-        ShelfController.AddShelf(s);
-    }
-
-    public void updateShelf()
-    {
-        var s = ShelfController.GetShelf("644418482949b7f4aa05aba6");
-        s.Compartments[0].Products[0].Quantity = 52;
-        var res = ShelfController.UpdateShelf(s);
-        Console.WriteLine(res);
+         CompartmentController.AddCompartment(c);
     }
 
 }

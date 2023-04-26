@@ -21,7 +21,7 @@ public class DbContext
     
     //get collections
     public IMongoCollection<User> UserRecord => _mongoDB.GetCollection<User>("User");
-    public IMongoCollection<Shelf> ShelfRecord => _mongoDB.GetCollection<Shelf>("Shelf");
+    public IMongoCollection<Compartment> CompartmentRecord => _mongoDB.GetCollection<Compartment>("Compartment");
     public IMongoCollection<Product> ProductRecord => _mongoDB.GetCollection<Product>("Product");
     public IMongoCollection<ProductType> ProductTypeRecord => _mongoDB.GetCollection<ProductType>("ProductType");
     public IMongoCollection<Project> ProjectRecord => _mongoDB.GetCollection<Project>("Project");

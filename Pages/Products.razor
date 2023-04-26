@@ -101,7 +101,11 @@
     {
         var res = await DialogService.ShowAsync<AddProduct>("Add new Product type", smallWidth);
         var result = await res.Result;
-        if (result.Data is null) return;
+        if (!result.Data.Equals(true))
+        {
+            Snackbar.Add(result.Data.ToString(), Severity.Error);
+            return;
+        }
         _productTypes = await ProductTypeController.GetAllProductTypes();
         Nav.NavigateTo(Nav.Uri,forceLoad:true);
         
@@ -161,7 +165,7 @@
 
     private void Backup(object element)
     {
-        backup = new Stock()
+        backup = new Stock
         {
             ProductType = ((Stock)element).ProductType,
             Quantity = ((Stock)element).Quantity,

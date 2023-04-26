@@ -48,7 +48,7 @@ public class ProductTypeController: IProductType
             foreach (var p in productList)
             {
                 p.ProductType = type;
-                context.ProductRecord.ReplaceOneAsync(x => x.id == p.id, p);
+                context.ProductRecord.ReplaceOneAsync(x => x.Id == p.Id, p);
             }
         }
         catch (Exception e)

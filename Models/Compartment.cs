@@ -4,12 +4,11 @@ using SWH.Shared.enums;
 
 namespace SWH.Models;
 
-public class Shelf
+public class Compartment
 {
     [BsonRepresentation(BsonType.ObjectId)]
     public string id { get; private set; }
 
-    public int column { get; set; }
-    public int row { get; set; }
-    public List<Compartment> Compartments { get; set; } = new();
+    public int compartmentId { get; set; }
+    public List<Shared.enums.Shelf> Shelves { get; set; } = new();
 }

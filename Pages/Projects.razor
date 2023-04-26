@@ -3,7 +3,6 @@
 @using SWH.Models
 @using SWH.Interfaces
 @using SWH.Shared.Components
-@using MongoDB.Bson
 @inject IProject ProjectController
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
@@ -87,7 +86,7 @@
         try
         {
             DialogParameters parameters = new() { { "_content", "Are you sure you want to delete this project?\n It can not be undone!" } };
-            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
             if (dialogResult.Canceled) return;
             ProjectController.DeleteProject(index);
@@ -120,11 +119,10 @@
     
     private async void CommitEdit(object project)
     {
-        Console.WriteLine(((Project)project).Status);
         try
         {
             DialogParameters parameters = new() { { "_content", "Are you sure you want to save?" } };
-            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var res = await result.Result;
             Console.WriteLine(res.Canceled);
             if (res.Canceled)
@@ -148,7 +146,6 @@
     
     private void ResetItemToOriginalValues(object element)
     {
-        Console.WriteLine(backup.Name);
         ((Project)element).Name = backup.Name;
         ((Project)element).Location = backup.Location;
         ((Project)element).Description = backup.Description;

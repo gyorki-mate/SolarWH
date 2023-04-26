@@ -21,7 +21,7 @@ builder.Services.AddMudServices();
 
 //FOR CONTROLLERS
 builder.Services.AddScoped<IUser, UserController>();
-builder.Services.AddScoped<IShelf, ShelfController>();
+builder.Services.AddScoped<ICompartment, CompartmentController>();
 builder.Services.AddScoped<IProduct, ProductController>();
 builder.Services.AddScoped<IProductType, ProductTypeController>();
 builder.Services.AddScoped<IProject, ProjectController>();

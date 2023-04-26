@@ -55,10 +55,9 @@
     private async void Close()
     {
         var newProduct = new Product
-        {
-            isStored = false,
+        {   
+            IsStored = false,
             Quantity = amount,
-            ContainerID = "0",
             ProductType = _products.Find(x => x.Name == value)
         };
         

@@ -27,17 +27,22 @@
     private string ProductName { get; set; }
     private int Price { get; set; }
     private int MaxCapacity { get; set; }
+    private List<ProductType> ProductTypes = new();
 
     MudForm form;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ProductTypes = await ProductTypeController.GetAllProductTypes();
+    }
 
     async void Close()
     {
         try
         {
             DialogParameters parameters = new() { { "_content", "Are you sure you want to save this product type?" } };
-            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var res = await result.Result;
-            Console.WriteLine("new product type data "+ res.Data);
             if (res.Data.Equals(true)) addProduct();
         }
         catch (Exception e)
@@ -51,6 +56,11 @@
     {
         try
         {
+            if (ProductTypes.Any(prodType => ProductName == prodType.Name))
+            {
+                MudDialog.Close("Product type already exists");
+                return;
+            }
             ProductType productType = new()
             {
                 Name = ProductName,
