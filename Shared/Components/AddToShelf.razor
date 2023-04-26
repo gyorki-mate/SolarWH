@@ -10,9 +10,10 @@
                 <MudGrid>
                     <MudItem xs="6">
                         <MudSelect T="string" Label="Products" HelperText="Pick the desired Product" MultiSelection="false" @bind-Value="value" @bind-SelectedValues="options" Immediate="true">
-                            @foreach (var productType in _productsTypes)
+                            @foreach (var product in _products)
                             {
-                                <MudSelectItem T="string" Value="@productType.Name">@productType.Name</MudSelectItem>
+                                var productText = product.ProductType.Name + " (available: " + product.Quantity + ")";
+                                <MudSelectItem T="string" Value="@product.ProductType.Name">@productText</MudSelectItem>
                             }
                         </MudSelect>
                     </MudItem>
@@ -39,30 +40,29 @@
     private IEnumerable<string> options { get; set; } = new List<string>() { "" };
 
     private int amount { get; set; }
-    private int itemMax { get; set; } = 64;
 
     private List<Tuple<ProductType, int>> newProducts = new();
     MudForm form;
 
     protected override async Task OnInitializedAsync()
     {
-        _productsTypes = await ProductTypeController.GetAllProductTypes();
         _products = await ProductController.GetAllNonStoredProducts();
     }
     
     private async void Close()
     {
-        var productType = _productsTypes.Find(x => x.Name == value);
+        var _product = _products.Find(x => x.ProductType.Name == value);
+        
         var newProduct = new Product
         {
-            IsStored = false,
+            IsStored = true,
             Quantity = amount,
-            ProductType = productType
+            ProductType = _product.ProductType
         };
         
         try
         {
-            DialogParameters parameters = new() { { "_content", "Are you sure you want to add " + amount + " " + value + " to the storage?"} };
+            DialogParameters parameters = new() { { "_content", "Are you sure you want to add " + amount + " " + _product.ProductType.Name + " to the shelf?"} };
             var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
             if (dialogResult.Canceled) return;
@@ -71,16 +71,13 @@
         {
             //
         }
-        if (_products.Exists(x => x.ProductType == newProduct.ProductType))
-        {
-            ProductController.AddProduct(newProduct, productType.id);
-        }
+        ProductController.AddProduct(newProduct, _product.ProductType.id);
+        var p = _products.Find(x => x.ProductType.Name == newProduct.ProductType.Name);
+        p.Quantity -= newProduct.Quantity;
+        if (p.Quantity == 0)
+            ProductController.DeleteProduct(p.Id);
         else
-        {
-            var p = _products.Find(x => x.ProductType.Name == newProduct.ProductType.Name);
-            p.Quantity += newProduct.Quantity;
             ProductController.UpdateProduct(p);
-        }
-        MudDialog.Close(DialogResult.Ok(productType));
+        MudDialog.Close(DialogResult.Ok(newProduct));
     }
 }

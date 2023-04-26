@@ -1,23 +1,70 @@
 ﻿@page "/storage"
+@using SWH.Models
+@using SWH.Shared.Components
+@using SWH.Controllers
+@using System.Diagnostics
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject Interfaces.ICompartment CompartmentController;
+@inject Interfaces.IProduct ProductController;
 
 <MudTabs Elevation="4" Rounded="true" Color="@Color.Dark" Class="mt-3" @bind-ActivePanelIndex="_activeTabIndex">
-    @for (int s = 0; s < 8; s++)
+    <MudTabPanel Text="Unstored Items">
+        <MudTable Items="_products"
+                  Dense="true"
+                  Filter="new Func<Product, bool>(FilterFunc1)">
+                  
+            <ToolBarContent>
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" MaxLength="45" Clearable/>
+                </MudItem>
+                <MudSpacer/>
+                <MudTooltip Class="align-content-lg-end" Text="Add product">
+                    <MudIconButton OnClick="NewShipment" Icon="@Icons.Material.Outlined.Add" Size="Size.Medium"/>
+                </MudTooltip>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<Product, object>(x => x.ProductType.Name)">Product Name</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<Product, object>(x => x.Quantity)">Currently unstored </MudTableSortLabel>
+                </MudTh>
+                <MudTh> Delete</MudTh>
+            </HeaderContent>
+            <RowTemplate Context="context">
+                <MudTd DataLabel="name">@context.ProductType.Name</MudTd>
+                <MudTd DataLabel="Storage">@context.Quantity</MudTd>
+                <MudTd DataLabel="del">
+                    <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(context.Id); })"/>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>        
+    </MudTabPanel>
+    @for (var s = 0; s < 8; s++)
     {
         var shelfText = "Shelf " + (s + 1).ToString();
         <MudTabPanel Text="@shelfText">
             <MudGrid Class="mt-3">
-                @for (int r = 0; r < 6; r++)
+                @for (var r = 0; r < 4; r++)
                 {
-                    @for (int c = 0; c < 6; c++)
+                    @for (var c = 0; c < 4; c++)
                     {
-                        var containerID = ((r * 6 + (c + 1)) + (36 * _activeTabIndex));
+                        var containerID = ((r * 6 + (c + 1)) + (16 * (_activeTabIndex -  1)));
                         var containerText = "Container " + containerID.ToString();
-                        <MudItem xs="2">
+                        <MudItem xs="3">
                             <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">
                                 <MudText>@containerText</MudText>
-                                <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Outlined" Color="Color.Success" Size="Size.Small" Class="ml-3"/>
+                                @if (_compartments.Find(x => x.compartmentId == (c + 1))?.Shelves?.Find(x => x.shelfId == containerID).Product != null)
+                                {
+                                    var product = _compartments.Find(x => x.compartmentId == (c + 1))?.Shelves?.Find(x => x.shelfId == containerID).Product;
+                                    var productText = product.ProductType.Name + " (" + product.Quantity + ")";
+                                    <MudText>@productText</MudText>    
+                                }
+                                else
+                                {
+                                    <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Outlined" Color="Color.Success" Size="Size.Small" Class="ml-3" OnClick="@(() => { StoreProduct(containerID, (c + 1)); })"/>
+                                }
                             </MudPaper>
                         </MudItem>
                     }
@@ -29,5 +76,82 @@
 
 @code {
     private int _activeTabIndex;
+    
+    DialogOptions smallWidth = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
+    List<Product> _products = new();
+    List<Compartment> _compartments = new();
+    private string searchString1 = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _products = await ProductController.GetAllNonStoredProducts();
+        _compartments = await CompartmentController.GetAllCompartments();
+    }
+    
+    private async void NewShipment()
+    {
+        var res = await DialogService.ShowAsync<NewShipmentDialog>("New Shipment", smallWidth);
+        var result = await res.Result;
+        //DO NOT WRITE CODE ABOVE THIS LINE OR THE APP WILL CRASH AS I DID NOT CARE TO HANDLE THE NULL EXCEPTION
+        if (result.Canceled) return;
+
+        if (result.Data.GetType() != typeof(ProductType))
+        {
+            Snackbar.Add(result.Data.ToString(), Severity.Error);
+            return;
+        }
+        Snackbar.Add("Successfully added new shipment", Severity.Success);
+        StateHasChanged();
+    }
+    
+    private async void StoreProduct(int sid, int cid)
+    {
+        var res = await DialogService.ShowAsync<AddToShelf>("Add product to shelf", smallWidth);
+        var result = await res.Result;
+        //DO NOT WRITE CODE ABOVE THIS LINE OR THE APP WILL CRASH AS I DID NOT CARE TO HANDLE THE NULL EXCEPTION
+        if (result.Canceled) return;
+
+        
+        if (result.Data.GetType() != typeof(Product))
+        {
+            Snackbar.Add(result.Data.ToString(), Severity.Error);
+            return;
+        }
+        
+        var _product = (Product)result.Data;
+        var _compartment = _compartments.Find(x => x.compartmentId == cid);
+        var _shelf = _compartment?.Shelves?.Find(x => x.shelfId == cid);
+        Debug.Assert(_shelf != null, nameof(_shelf) + " != null");
+        _shelf.Product = _product;
+        CompartmentController.UpdateCompartment(_compartment);
+        Snackbar.Add("Successfully added new product", Severity.Success);
+        StateHasChanged();
+    }
+    
+    private async void DeleteProduct(string index)
+    {
+        try
+        {
+            DialogParameters parameters = new() { { "_content", "Are you sure you want to delete this product?\n It can not be undone!" } };
+            var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
+            var dialogResult = await result.Result;
+            if (dialogResult.Canceled) return;
+            ProductController.DeleteProduct(index);
+            _products = await ProductController.GetAllNonStoredProducts();
+            Snackbar.Add("Successfully deleted product", Severity.Success);
+            StateHasChanged();
+        }
+        catch (Exception e)
+        {
+    //ignored
+        }
+    }
+    
+    private bool FilterFunc1(Product product) => FilterFunc(product, searchString1);
+
+    private bool FilterFunc(Product product, string searchString)
+    {
+        return string.IsNullOrWhiteSpace(searchString) || product.ProductType.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
+    }
 }
 

@@ -57,12 +57,6 @@ public class ProductController : IProduct
         {
             var productType = _context.ProductTypeRecord.Find(x => x.id == productTypeId).FirstOrDefault();
             product.ProductType = productType;
-            //throw error if product type.MaxCapacity is reached
-            if (productType.MaxCapacity <= product.Quantity)
-            {
-                throw new Exception("Product Type Max Capacity Reached");
-            }
-
             _context.ProductRecord.InsertOne(product);
         }
         catch (Exception e)
@@ -78,7 +72,6 @@ public class ProductController : IProduct
         
         //TODO check if product type max capacity is reached
         //TODO update Shelf as well
-        if (!product.IsStored) throw new Exception("not_stored");
         try
         {
             await _context.ProductRecord.ReplaceOneAsync(x => x.Id == product.Id, product);
