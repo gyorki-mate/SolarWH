@@ -173,6 +173,7 @@ Current Cost: @newCost
         var result = await res.Result;
         if (result.Data is null) return;
         //_productList = _project.Products;
+        newCost = 0;
         foreach (var product in _productList)
         {
             newCost += product.productType.Price * product.Quantity;
