@@ -8,7 +8,6 @@
 @inject IProduct ProductController
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
-@inject NavigationManager Nav;
 
 <MudTable Items="_storage"
           @ref="_table"
@@ -73,7 +72,7 @@
     private MudTable<Stock> _table;
     List<ProductType> _productTypes = new();
     List<Product> _products = new();
-    List<Stock> _storage = new();
+    List<Stock>     _storage = new();
     private Stock backup = new();
     private Stock selectedItem;
     private string searchString1 = "";
@@ -101,18 +100,20 @@
     {
         var res = await DialogService.ShowAsync<AddProduct>("Add new Product type", smallWidth);
         var result = await res.Result;
-        Console.WriteLine(result.Data.GetType());
-        if (!result.Data.Equals(typeof(ProductType)))
+        //DO NOT WRITE CODE ABOVE THIS LINE OR THE APP WILL CRASH AS I DID NOT CARE TO HANDLE THE NULL EXCEPTION
+        if (result.Canceled) return;
+
+        if (result.Data.GetType() != typeof(ProductType))
         {
             Snackbar.Add(result.Data.ToString(), Severity.Error);
             return;
         }
+            
         _productTypes = await ProductTypeController.GetAllProductTypes();
         _products = await ProductController.GetAllProducts();
         _storage.Add(new  Stock { ProductType = result.Data as ProductType });
+        Snackbar.Add("Successfully added product type", Severity.Success);
         StateHasChanged();
-        // Nav.NavigateTo(Nav.Uri,forceLoad:true);
-        
     }
 
     private async void DeleteProduct(string index)
@@ -125,8 +126,9 @@
             if (dialogResult.Canceled) return;
             ProductTypeController.DeleteProductType(index);
             _productTypes = await ProductTypeController.GetAllProductTypes();
-            Nav.NavigateTo(Nav.Uri,forceLoad:true);
-    
+            _storage.RemoveAll(x => x.ProductType.id == index);
+            Snackbar.Add("Successfully deleted product type", Severity.Success);
+            StateHasChanged();
         }
         catch (Exception e)
         {

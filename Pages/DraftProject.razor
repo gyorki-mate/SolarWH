@@ -4,18 +4,17 @@
 @using SWH.Shared.Components
 @using SWH.Shared.enums
 @inject IDialogService DialogService
-@inject Interfaces.IProject ProjectController;
-@inject Interfaces.IProductType ProductTypeController;
+@inject IProject ProjectController;
+@inject IProductType ProductTypeController;
 @inject IProduct ProductController;
 @inject ISnackbar Snackbar;
 @inject NavigationManager NavManager
 
-
-<h3>Drafting Project: @projectName</h3>
-Current Cost: @newCost
+<h3>Drafting Project: @_projectName</h3>
+Current Cost: @_newCost
 
 <MudTable Items="_productList" Dense="true" CanCancelEdit="true"
-          @bind-SelectedItem="selectedItem"
+          @bind-SelectedItem="_selectedItem"
           IsEditRowSwitchingBlocked="false"
           CommitEditTooltip="Commit Edit"
           CancelEditTooltip="Cancel Edit"
@@ -26,7 +25,7 @@ Current Cost: @newCost
 
     <ToolBarContent>
         <MudItem xs="6">
-            <MudTextField @bind-Value="searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" MaxLength="45" Clearable/>
+            <MudTextField @bind-Value="_searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" MaxLength="45" Clearable/>
         </MudItem>
         <MudSpacer/>
         <MudTooltip Class="align-content-lg-end" Text="Add product">
@@ -56,12 +55,9 @@ Current Cost: @newCost
         <MudTd DataLabel="price">@productListContext.productType.Price HUF</MudTd>
         <MudTd DataLabel="quantity">@productListContext.Quantity</MudTd>
         <MudTd DataLabel="storage">
-            @foreach (var stock in _storage)
+            @foreach (var stock in _storage.Where(stock => stock.ProductType.Name == productListContext.productType.Name))
             {
-                if (stock.ProductType.Name == productListContext.productType.Name)
-                {
-                     @stock.Quantity
-                }
+                @stock.Quantity
             }
         </MudTd>
         <MudTd DataLabel="del">
@@ -71,22 +67,22 @@ Current Cost: @newCost
     <RowEditingTemplate Context="productListContext">
         <MudTd DataLabel="name">@productListContext.productType.Name</MudTd>
         <MudTd DataLabel="price">@productListContext.productType.Price HUF</MudTd>
-        <MudTd DataLabel="quantity"><MudNumericField @bind-Value="selectedItem.Quantity" Required MaxLength="5" Min="1" Max="10000" Immediate/></MudTd>
+        <MudTd DataLabel="quantity">
+            <MudNumericField @bind-Value="_selectedItem.Quantity" Required MaxLength="5" Min="1" Max="10000" Immediate/>
+        </MudTd>
         <MudTd DataLabel="storage">
-            @foreach (var stock in _storage)
+            @foreach (var stock in _storage.Where(stock => stock.ProductType.Name == productListContext.productType.Name))
             {
-                if (stock.ProductType.Name == productListContext.productType.Name)
-                {
-                     @stock.Quantity
-                }
+                @stock.Quantity
             }
         </MudTd>
     </RowEditingTemplate>
 </MudTable>
 
 @code {
+
     [Parameter]
-    public string projectIndex { get; set; }
+    public string ProjectIndex { get; set; }
 
     //List<ProductType> _products = new();
 
@@ -94,24 +90,24 @@ Current Cost: @newCost
 
     List<Product> _products = new();
     private Project _project;
-    private string projectName = "";
-    private string searchString1 = "";
-    private string newStatus = "Draft";
-    private int newCost;
+    private string _projectName = "";
+    private string _searchString1 = "";
+    private string _newStatus = "Draft";
+    private int _newCost;
     List<Stock> _storage = new();
     private List<ProjectProducts> _productList = new();
-    private ProjectProducts selectedItem;
-    private ProjectProducts backup = new();
-
+    private ProjectProducts _selectedItem;
+    private ProjectProducts _backup = new();
+    
     protected override async Task OnInitializedAsync()
     {
         _productTypes = await ProductTypeController.GetAllProductTypes();
         _products = await ProductController.GetAllProducts();
-        _project = ProjectController.GetProject(projectIndex);
+        _project = ProjectController.GetProject(ProjectIndex);
         _productList = _project.Products;
-        newCost = _project.Cost;
-        projectName = _project.Name;
-        
+        _newCost = _project.Cost;
+        _projectName = _project.Name;
+
         foreach (var stock in _productTypes.Select(productType => new Stock { ProductType = productType }))
         {
             foreach (var product in _products.Where(product => product.ProductType.Name == stock.ProductType.Name))
@@ -122,22 +118,18 @@ Current Cost: @newCost
             _storage.Add(stock);
         }
     }
-    
+
     private async void Draft()
     {
         try
         {
-            // if (_project.Products==_productList)
-            // {
-            //     Snackbar.Add("No changes were made!", Severity.Info);
-            //     NavManager.NavigateTo("/projects");
-            //     return;
-            // }
-            foreach (var product in _productList)
+            foreach (var product in from product in _productList
+                from stock in _storage.Where(stock => product.productType.Name == stock.ProductType.Name && product.Quantity > stock.Quantity)
+                select product)
             {
-                foreach (var stock in _storage)
+                foreach (var stock in _storage.Where(stock => product.productType.Name == stock.ProductType.Name && product.Quantity > stock.Quantity))
                 {
-                    if (product.productType.Name == stock.ProductType.Name && product.Quantity > stock.Quantity) newStatus = "Wait";
+                    _newStatus = "Wait";
                 }
             }
             var draftedProject = new Project
@@ -148,11 +140,11 @@ Current Cost: @newCost
                 Description = _project.Description,
                 UserName = _project.UserName,
                 PhoneNumber = _project.PhoneNumber,
-                Status = newStatus,
-                Cost = newCost,
+                Status = _newStatus,
+                Cost = _newCost,
                 Products = _productList
             };
-            
+
             DialogParameters parameters = new() { { "_content", "Are you sure you want to draft the project?" } };
             var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
@@ -161,27 +153,28 @@ Current Cost: @newCost
             ProjectController.UpdateProject(draftedProject);
         }
         catch (Exception e)
-        {//
+        {
+    //ignored
         }
         NavManager.NavigateTo("/projects");
     }
-    
+
     private async void AddProduct()
     {
         DialogParameters parameters = new() { { "productsList", _productList } };
         var res = await DialogService.ShowAsync<AddProductToDraft>("Add new Product for Draft", parameters);
         var result = await res.Result;
         if (result.Data is null) return;
-        //_productList = _project.Products;
-        newCost = 0;
+        
+        _newCost = 0;
         foreach (var product in _productList)
         {
-            newCost += product.productType.Price * product.Quantity;
+            _newCost += product.productType.Price * product.Quantity;
         }
         Snackbar.Add("Product added to draft!", Severity.Success);
         StateHasChanged();
     }
-    
+
     private async void DeleteProduct(string name)
     {
         try
@@ -190,13 +183,14 @@ Current Cost: @newCost
             var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
             if (dialogResult.Canceled) return;
-            //await this function to run in a separate thread
+
+    //await this function to run in a separate thread
             await Task.Run(() =>
             {
                 foreach (var product in _productList.Where(product => product.productType.Name == name))
                 {
                     _productList.Remove(product);
-                    newCost -= product.productType.Price * product.Quantity;
+                    _newCost -= product.productType.Price * product.Quantity;
                     Snackbar.Add("Product deleted!", Severity.Success);
                     break;
                 }
@@ -209,16 +203,16 @@ Current Cost: @newCost
     //ignored
         }
     }
-    
+
     private async void CommitEdit(object product)
     {
         try
         {
             DialogParameters parameters = new() { { "_content", "Are you sure you want to save your edit?" } };
-            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var res = await result.Result;
-            Console.WriteLine(res.Cancelled);
-            if (res.Cancelled)
+            Console.WriteLine(res.Canceled);
+            if (res.Canceled)
             {
                 ResetItemToOriginalValues(product);
                 Snackbar.Add("Edit cancelled", Severity.Info);
@@ -226,20 +220,16 @@ Current Cost: @newCost
             }
             else
             {
-                ProjectProducts view = (ProjectProducts)product;
-                foreach (var prod in _productList)
+                var view = (ProjectProducts)product;
+                foreach (var prod in _productList.Where(prod => prod.productType.Name == view.productType.Name))
                 {
-                    if (prod.productType.Name == view.productType.Name)
-                    {
-                        
-                        prod.Quantity = selectedItem.Quantity;
-                    }
+                    prod.Quantity = _selectedItem.Quantity;
                 }
-                
-                newCost = 0;
+
+                _newCost = 0;
                 foreach (var prod in _productList)
                 {
-                    newCost += prod.productType.Price * prod.Quantity;
+                    _newCost += prod.productType.Price * prod.Quantity;
                 }
                 Snackbar.Add("Successfully saved edit", Severity.Success);
             }
@@ -251,27 +241,28 @@ Current Cost: @newCost
     //ignored
         }
     }
-    
+
     private void ResetItemToOriginalValues(object element)
     {
-        ((ProjectProducts)element).productType.Name = backup.productType.Name;
-        ((ProjectProducts)element).productType.Price = backup.productType.Price;
-        ((ProjectProducts)element).Quantity = backup.Quantity;
+        ((ProjectProducts)element).productType.Name = _backup.productType.Name;
+        ((ProjectProducts)element).productType.Price = _backup.productType.Price;
+        ((ProjectProducts)element).Quantity = _backup.Quantity;
     }
-    
+
     private void Backup(object element)
     {
-        backup = new ProjectProducts
+        _backup = new ProjectProducts
         {
             productType = ((ProjectProducts)element).productType,
             Quantity = ((ProjectProducts)element).Quantity
         };
     }
-    
-    private bool FilterFunc1(ProjectProducts product) => FilterFunc(product, searchString1);
+
+    private bool FilterFunc1(ProjectProducts product) => FilterFunc(product, _searchString1);
 
     private bool FilterFunc(ProjectProducts product, string searchString)
     {
         return string.IsNullOrWhiteSpace(searchString) || product.productType.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
     }
+    
 }
