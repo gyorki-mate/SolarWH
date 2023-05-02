@@ -1,10 +1,9 @@
-﻿@using Models
-@using MongoDB.Driver.Linq
+﻿ @using Models
 @using SWH.Interfaces
 @using SWH.Shared.enums
 @inject IDialogService DialogService
-@inject Interfaces.IProject ProjectController;
-@inject Interfaces.IProductType ProductTypeController;
+@inject IProject ProjectController;
+@inject IProductType ProductTypeController;
 
 <MudDialog>
     <DialogContent>
@@ -41,7 +40,7 @@
     private bool _success;
     private ProductType _product;
     private int _quantity;
-    
+
     MudForm form;
     
     protected override async Task OnInitializedAsync()
@@ -49,7 +48,7 @@
         _products = await ProductTypeController.GetAllProductTypes();
         foreach (var product in productsList)
         {
-            containsList.Add(product.productType.Name);
+            containsList.Add(product.ProductType.Name);
         }
     }
     
@@ -57,8 +56,8 @@
     {
         try
         {
-            DialogParameters parameters = new() { { "_content", "Are you sure you want to add this product to the draft?" } };
-            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            DialogParameters parameters = new() { { "Content", "Are you sure you want to add this product to the draft?" } };
+            var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var res = await result.Result;
             if (res.Data.Equals(true)) addProduct();
         }
@@ -75,12 +74,11 @@
         {
             ProjectProducts newProduct = new()
             {
-                productType = _product,
+                ProductType = _product,
                 Quantity = _quantity
             };
 
-            productsList.Add(newProduct);
-            MudDialog.Close(true);
+            MudDialog.Close(newProduct);
         }
         catch (Exception e)
         {

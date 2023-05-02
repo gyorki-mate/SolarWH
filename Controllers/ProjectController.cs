@@ -7,13 +7,13 @@ namespace SWH.Controllers;
 
 public class ProjectController : IProject
 {
-    DbContext context = new DbContext();
+    private readonly DbContext _context = new();
 
     public async Task<List<Project>> GetAllProjects()
     {
         try
         {
-            var projects = context.ProjectRecord.Find(FilterDefinition<Project>.Empty).ToListAsync();
+            var projects = _context.ProjectRecord.Find(FilterDefinition<Project>.Empty).ToListAsync();
             return await projects;
         }
         catch (Exception e)
@@ -23,11 +23,11 @@ public class ProjectController : IProject
         }
     }
 
-    public Project GetProject(string projectID)
+    public Project GetProject(string projectId)
     {
         try
         {
-            var project = context.ProjectRecord.Find(x => x.id == projectID).FirstOrDefault();
+            var project = _context.ProjectRecord.Find(x => x.Id == projectId).FirstOrDefault();
             return project;
         }
         catch (Exception e)
@@ -44,7 +44,7 @@ public class ProjectController : IProject
             project.CreatedAt = DateOnly.FromDateTime(DateTime.Now);
             project.UpdatedAt = DateOnly.FromDateTime(DateTime.Now);
 
-            await context.ProjectRecord.InsertOneAsync(project);
+            await _context.ProjectRecord.InsertOneAsync(project);
         }
         catch (Exception e)
         {
@@ -58,7 +58,7 @@ public class ProjectController : IProject
         try
         {
             project.UpdatedAt = DateOnly.FromDateTime(DateTime.Now);
-            await context.ProjectRecord.ReplaceOneAsync(x => x.id == project.id, project);
+            await _context.ProjectRecord.ReplaceOneAsync(x => x.Id == project.Id, project);
         }
         catch (Exception e)
         {
@@ -67,11 +67,11 @@ public class ProjectController : IProject
         }
     }
 
-    public void DeleteProject(string projectID)
+    public void DeleteProject(string projectId)
     {
         try
         {
-            context.ProjectRecord.DeleteOne(x => x.id == projectID);
+            _context.ProjectRecord.DeleteOne(x => x.Id == projectId);
         }
         catch (Exception e)
         {

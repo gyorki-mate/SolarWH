@@ -6,17 +6,13 @@ namespace SWH.Controllers;
 
 public class UserController : IUser
 {
-    DbContext context = new DbContext();
-
-    public UserController()
-    {
-    }
+    private readonly DbContext _context = new();
 
     public async void AddUser(User user)
     {
         try
         {
-            await context.UserRecord.InsertOneAsync(user);
+            await _context.UserRecord.InsertOneAsync(user);
         }
         catch (Exception e)
         {
@@ -29,7 +25,7 @@ public class UserController : IUser
     {
         try
         {
-            var users = context.UserRecord.Find(FilterDefinition<User>.Empty).ToListAsync();
+            var users = _context.UserRecord.Find(FilterDefinition<User>.Empty).ToListAsync();
             return await users;
         }
         catch (Exception e)
@@ -46,8 +42,8 @@ public class UserController : IUser
     {
         try
         {
-            var User = context.UserRecord.Find(x => x.UserName == userName).FirstOrDefault();
-            return User;
+            var user = _context.UserRecord.Find(x => x.UserName == userName).FirstOrDefault();
+            return user;
         }
         catch (Exception e)
         {
@@ -60,7 +56,7 @@ public class UserController : IUser
     {
         try
         {
-            await context.UserRecord.ReplaceOneAsync(x => x.id == user.id, user);
+            await _context.UserRecord.ReplaceOneAsync(x => x.Id == user.Id, user);
 
         }
         catch (Exception e)
@@ -70,11 +66,11 @@ public class UserController : IUser
         }
     }
 
-    public void DeleteUser(string userID)
+    public void DeleteUser(string userId)
     {
         try
         {
-            context.UserRecord.DeleteOne(x => x.id == userID);
+            _context.UserRecord.DeleteOne(x => x.Id == userId);
         }
         catch (Exception e)
         {

@@ -7,7 +7,7 @@ namespace SWH.Models;
 public class Project
 {
     [BsonRepresentation(BsonType.ObjectId)]
-    public string id { get; set; }
+    public string Id { get; set; }
 
     [BsonElement("name")] public string Name { get; set; }
 

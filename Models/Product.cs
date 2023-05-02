@@ -1,9 +1,7 @@
 ﻿using MongoDB.Bson;
-using MongoDB.Driver;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace SWH.Models;
-
-using MongoDB.Bson.Serialization.Attributes;
 
 public class Product
 {
@@ -11,6 +9,6 @@ public class Product
     public string Id { get; set; }
 
     public bool IsStored { get; set; }
-    public int Quantity { get; set; }
+    public int Quantity { get; set; } = 0;
     public ProductType ProductType { get; set; }
 }

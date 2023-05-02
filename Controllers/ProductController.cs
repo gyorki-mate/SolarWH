@@ -41,7 +41,7 @@ public class ProductController : IProduct
         {
             var product = _context.ProductRecord.Find(x => x.Id == productId).FirstOrDefault();
             product.ProductType =
-                _context.ProductTypeRecord.Find(x => x.id == product.ProductType.id).FirstOrDefault();
+                _context.ProductTypeRecord.Find(x => x.Id == product.ProductType.Id).FirstOrDefault();
             return product;
         }
         catch (Exception e)
@@ -55,7 +55,7 @@ public class ProductController : IProduct
     {
         try
         {
-            var productType = _context.ProductTypeRecord.Find(x => x.id == productTypeId).FirstOrDefault();
+            var productType = _context.ProductTypeRecord.Find(x => x.Id == productTypeId).FirstOrDefault();
             product.ProductType = productType;
             _context.ProductRecord.InsertOne(product);
         }
@@ -79,7 +79,6 @@ public class ProductController : IProduct
         catch (Exception e)
         {
             Console.WriteLine(e);
-            throw;
         }
     }
 

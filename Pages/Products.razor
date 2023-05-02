@@ -11,9 +11,9 @@
 
 <MudTable Items="_storage"
           @ref="_table"
-          Dense="true" 
+          Dense="true"
           CanCancelEdit="true"
-          @bind-SelectedItem="selectedItem"
+          @bind-SelectedItem="_selectedItem"
           IsEditRowSwitchingBlocked="false"
           CommitEditTooltip="Commit Edit"
           CancelEditTooltip="Cancel Edit"
@@ -24,7 +24,7 @@
 
     <ToolBarContent>
         <MudItem xs="6">
-            <MudTextField @bind-Value="searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" MaxLength="45" Clearable/>
+            <MudTextField @bind-Value="_searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" MaxLength="45" Clearable/>
         </MudItem>
         <MudSpacer/>
         <MudTooltip Class="align-content-lg-end" Text="Add product">
@@ -54,13 +54,13 @@
         <MudTd DataLabel="maxQuantity">@context.ProductType.MaxCapacity</MudTd>
         <MudTd DataLabel="Storage">@context.Quantity</MudTd>
         <MudTd DataLabel="del">
-            <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(context.ProductType.id); })"/>
+            <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(context.ProductType.Id); })"/>
         </MudTd>
     </RowTemplate>
     <RowEditingTemplate Context="productTypeContext">
         <MudTd DataLabel="name">@productTypeContext.ProductType.Name</MudTd>
         <MudTd DataLabel="price">
-            <MudNumericField @bind-Value="selectedItem.ProductType.Price" Required MaxLength="5" Min="0" Max="10000" Immediate/>
+            <MudNumericField @bind-Value="_selectedItem.ProductType.Price" Required MaxLength="5" Min="0" Max="10000" Immediate/>
         </MudTd>
         <MudTd DataLabel="currentStock">@productTypeContext.Quantity</MudTd>
         <MudTd DataLabel="maxQuantity">@productTypeContext.ProductType.MaxCapacity</MudTd>
@@ -72,11 +72,11 @@
     private MudTable<Stock> _table;
     List<ProductType> _productTypes = new();
     List<Product> _products = new();
-    List<Stock>     _storage = new();
-    private Stock backup = new();
-    private Stock selectedItem;
-    private string searchString1 = "";
-    DialogOptions smallWidth = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
+    readonly List<Stock> _storage = new();
+    private Stock _backup = new();
+    private Stock _selectedItem;
+    private string _searchString1 = "";
+    readonly DialogOptions _smallWidth = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
 
     protected override async Task OnInitializedAsync()
     {
@@ -98,9 +98,9 @@
 
     private async void AddProduct()
     {
-        var res = await DialogService.ShowAsync<AddProduct>("Add new Product type", smallWidth);
+        var res = await DialogService.ShowAsync<AddProduct>("Add new Product type", _smallWidth);
         var result = await res.Result;
-        //DO NOT WRITE CODE ABOVE THIS LINE OR THE APP WILL CRASH AS I DID NOT CARE TO HANDLE THE NULL EXCEPTION
+    //DO NOT WRITE CODE ABOVE THIS LINE OR THE APP WILL CRASH AS I DID NOT CARE TO HANDLE THE NULL EXCEPTION
         if (result.Canceled) return;
 
         if (result.Data.GetType() != typeof(ProductType))
@@ -108,10 +108,10 @@
             Snackbar.Add(result.Data.ToString(), Severity.Error);
             return;
         }
-            
+
         _productTypes = await ProductTypeController.GetAllProductTypes();
         _products = await ProductController.GetAllProducts();
-        _storage.Add(new  Stock { ProductType = result.Data as ProductType });
+        _storage.Add(new Stock { ProductType = result.Data as ProductType });
         Snackbar.Add("Successfully added product type", Severity.Success);
         StateHasChanged();
     }
@@ -120,13 +120,13 @@
     {
         try
         {
-            DialogParameters parameters = new() { { "_content", "Are you sure you want to delete this product type?\n It can not be undone!" } };
+            DialogParameters parameters = new() { { "Content", "Are you sure you want to delete this product type?\n It can not be undone!" } };
             var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
             if (dialogResult.Canceled) return;
             ProductTypeController.DeleteProductType(index);
             _productTypes = await ProductTypeController.GetAllProductTypes();
-            _storage.RemoveAll(x => x.ProductType.id == index);
+            _storage.RemoveAll(x => x.ProductType.Id == index);
             Snackbar.Add("Successfully deleted product type", Severity.Success);
             StateHasChanged();
         }
@@ -140,7 +140,7 @@
     {
         try
         {
-            DialogParameters parameters = new() { { "_content", "Are you sure you want to save?" } };
+            DialogParameters parameters = new() { { "Content", "Are you sure you want to save?" } };
             var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var res = await result.Result;
             if (res.Canceled)
@@ -165,20 +165,20 @@
 
     private void ResetItemToOriginalValues(object element)
     {
-        ((Stock)element).ProductType = backup.ProductType;
-        ((Stock)element).Quantity = backup.Quantity;
+        ((Stock)element).ProductType = _backup.ProductType;
+        ((Stock)element).Quantity = _backup.Quantity;
     }
 
     private void Backup(object element)
     {
-        backup = new Stock
+        _backup = new Stock
         {
             ProductType = ((Stock)element).ProductType,
             Quantity = ((Stock)element).Quantity,
         };
     }
 
-    private bool FilterFunc1(Stock stock) => FilterFunc(stock, searchString1);
+    private bool FilterFunc1(Stock stock) => FilterFunc(stock, _searchString1);
 
     private bool FilterFunc(Stock stock, string searchString)
     {

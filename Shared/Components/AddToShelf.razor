@@ -1,15 +1,14 @@
 ﻿@using Models
 @inject IDialogService DialogService
-@inject Interfaces.IProductType ProductTypeController;
 @inject Interfaces.IProduct ProductController;
 
 <MudDialog>
     <DialogContent>
         <div class="d-flex flex-column py-1">
-            <MudForm @ref="form" @bind-IsValid="@_success">
+            <MudForm @ref="_form" @bind-IsValid="@_success">
                 <MudGrid>
                     <MudItem xs="6">
-                        <MudSelect T="string" Label="Products" HelperText="Pick the desired Product" MultiSelection="false" @bind-Value="value" @bind-SelectedValues="options" Immediate="true">
+                        <MudSelect T="string" Label="Products" HelperText="Pick the desired Product" MultiSelection="false" @bind-Value="Value" @bind-SelectedValues="Options" Immediate="true">
                             @foreach (var product in _products)
                             {
                                 var productText = product.ProductType.Name + " (available: " + product.Quantity + ")";
@@ -18,7 +17,7 @@
                         </MudSelect>
                     </MudItem>
                     <MudItem xs="6">
-                        <MudNumericField @bind-Value="amount" Label="Amount" Variant="Variant.Text" Min="1" Max="9999" Immediate="true"/>
+                        <MudNumericField @bind-Value="Amount" Label="Amount" Variant="Variant.Text" Min="1" Max="9999" Immediate="true"/>
                     </MudItem>
                 </MudGrid>
             </MudForm>
@@ -30,48 +29,46 @@
 </MudDialog>
 
 @code {
+
     [CascadingParameter]
     MudDialogInstance MudDialog { get; set; }
 
     private bool _success;
-    List<ProductType> _productsTypes = new();
     List<Product> _products = new();
-    private string value { get; set; }
-    private IEnumerable<string> options { get; set; } = new List<string>() { "" };
+    private IEnumerable<string> Options { get; set; } = new List<string>();
+    private int Amount { get; set; }
+    private string Value { get; set; }
 
-    private int amount { get; set; }
-
-    private List<Tuple<ProductType, int>> newProducts = new();
-    MudForm form;
+    MudForm _form;
 
     protected override async Task OnInitializedAsync()
     {
         _products = await ProductController.GetAllNonStoredProducts();
     }
-    
+
     private async void Close()
     {
-        var _product = _products.Find(x => x.ProductType.Name == value);
-        
+        var product = _products.Find(x => x.ProductType.Name == Value);
+
         var newProduct = new Product
         {
             IsStored = true,
-            Quantity = amount,
-            ProductType = _product.ProductType
+            Quantity = Amount,
+            ProductType = product.ProductType
         };
-        
+
         try
         {
-            DialogParameters parameters = new() { { "_content", "Are you sure you want to add " + amount + " " + _product.ProductType.Name + " to the shelf?"} };
-            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            DialogParameters parameters = new() { { "_content", "Are you sure you want to add " + Amount + " " + product.ProductType.Name + " to the shelf?" } };
+            var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
             if (dialogResult.Canceled) return;
         }
         catch (Exception e)
         {
-            //
+    //ignored
         }
-        ProductController.AddProduct(newProduct, _product.ProductType.id);
+        ProductController.AddProduct(newProduct, product.ProductType.Id);
         var p = _products.Find(x => x.ProductType.Name == newProduct.ProductType.Name);
         p.Quantity -= newProduct.Quantity;
         if (p.Quantity == 0)
@@ -80,4 +77,5 @@
             ProductController.UpdateProduct(p);
         MudDialog.Close(DialogResult.Ok(newProduct));
     }
+
 }

@@ -1,8 +1,9 @@
-﻿@page "/projects/draft/{projectIndex}"
+﻿@page "/projects/draft/{ProjectIndex}"
 @using SWH.Models
 @using SWH.Interfaces
 @using SWH.Shared.Components
 @using SWH.Shared.enums
+@using MudBlazor.Extensions
 @inject IDialogService DialogService
 @inject IProject ProjectController;
 @inject IProductType ProductTypeController;
@@ -10,10 +11,10 @@
 @inject ISnackbar Snackbar;
 @inject NavigationManager NavManager
 
-<h3>Drafting Project: @_projectName</h3>
-Current Cost: @_newCost
+<h3>Drafting Project: @_project.Name</h3>
+Current Cost: @_project.Cost
 
-<MudTable Items="_productList" Dense="true" CanCancelEdit="true"
+<MudTable Items="_project.Products" Dense="true" CanCancelEdit="true"
           @bind-SelectedItem="_selectedItem"
           IsEditRowSwitchingBlocked="false"
           CommitEditTooltip="Commit Edit"
@@ -32,15 +33,15 @@ Current Cost: @_newCost
             <MudIconButton OnClick="AddProduct" Icon="@Icons.Material.Outlined.Add" Size="Size.Medium"/>
         </MudTooltip>
         <MudTooltip Class="align-content-lg-end" Text="Save project">
-            <MudIconButton OnClick="Draft" Icon="@Icons.Material.Outlined.Save" Size="Size.Medium"/>
+            <MudIconButton OnClick="Save" Icon="@Icons.Material.Outlined.Save" Size="Size.Medium"/>
         </MudTooltip>
     </ToolBarContent>
     <HeaderContent>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<ProjectProducts, object>(x => x.productType.Name)">Product Name</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<ProjectProducts, object>(x => x.ProductType.Name)">Product Name</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<ProjectProducts, object>(x => x.productType.Price)">Product Price</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<ProjectProducts, object>(x => x.ProductType.Price)">Product Price</MudTableSortLabel>
         </MudTh>
         <MudTh>
             <MudTableSortLabel SortBy="new Func<ProjectProducts, object>(x => x.Quantity)">Required Amount</MudTableSortLabel>
@@ -51,27 +52,27 @@ Current Cost: @_newCost
         <MudTh> Delete</MudTh>
     </HeaderContent>
     <RowTemplate Context="productListContext">
-        <MudTd DataLabel="name">@productListContext.productType.Name</MudTd>
-        <MudTd DataLabel="price">@productListContext.productType.Price HUF</MudTd>
+        <MudTd DataLabel="name">@productListContext.ProductType.Name</MudTd>
+        <MudTd DataLabel="price">@productListContext.ProductType.Price HUF</MudTd>
         <MudTd DataLabel="quantity">@productListContext.Quantity</MudTd>
         <MudTd DataLabel="storage">
-            @foreach (var stock in _storage.Where(stock => stock.ProductType.Name == productListContext.productType.Name))
+            @foreach (var stock in _storage.Where(stock => stock.ProductType.Name == productListContext.ProductType.Name))
             {
                 @stock.Quantity
             }
         </MudTd>
         <MudTd DataLabel="del">
-            <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(productListContext.productType.Name); })"/>
+            <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(productListContext.ProductType.Name); })"/>
         </MudTd>
     </RowTemplate>
     <RowEditingTemplate Context="productListContext">
-        <MudTd DataLabel="name">@productListContext.productType.Name</MudTd>
-        <MudTd DataLabel="price">@productListContext.productType.Price HUF</MudTd>
+        <MudTd DataLabel="name">@productListContext.ProductType.Name</MudTd>
+        <MudTd DataLabel="price">@productListContext.ProductType.Price HUF</MudTd>
         <MudTd DataLabel="quantity">
             <MudNumericField @bind-Value="_selectedItem.Quantity" Required MaxLength="5" Min="1" Max="10000" Immediate/>
         </MudTd>
         <MudTd DataLabel="storage">
-            @foreach (var stock in _storage.Where(stock => stock.ProductType.Name == productListContext.productType.Name))
+            @foreach (var stock in _storage.Where(stock => stock.ProductType.Name == productListContext.ProductType.Name))
             {
                 @stock.Quantity
             }
@@ -84,33 +85,22 @@ Current Cost: @_newCost
     [Parameter]
     public string ProjectIndex { get; set; }
 
-    //List<ProductType> _products = new();
-
-    private IEnumerable<ProductType> _productTypes { get; set; } = new List<ProductType>();
-
+    private List<ProductType> _productTypes = new();
     List<Product> _products = new();
-    private Project _project;
-    private string _projectName = "";
+    private List<ProjectProducts> _storage = new();
+
+    private Project _project = new();
     private string _searchString1 = "";
-    private string _newStatus = "Draft";
-    private int _newCost;
-    private DateOnly _estimatedDate;
-    List<Stock> _storage = new();
-    private List<ProjectProducts> _productList = new();
     private ProjectProducts _selectedItem;
     private ProjectProducts _backup = new();
-    
+
     protected override async Task OnInitializedAsync()
     {
+        _project = ProjectController.GetProject(ProjectIndex);
         _productTypes = await ProductTypeController.GetAllProductTypes();
         _products = await ProductController.GetAllProducts();
-        _project = ProjectController.GetProject(ProjectIndex);
-        _productList = _project.Products;
-        _newCost = _project.Cost;
-        _projectName = _project.Name;
-        _estimatedDate = _project.UpdatedAt.AddDays(14);
 
-        foreach (var stock in _productTypes.Select(productType => new Stock { ProductType = productType }))
+        foreach (var stock in _productTypes.Select(productType => new ProjectProducts() { ProductType = productType }))
         {
             foreach (var product in _products.Where(product => product.ProductType.Name == stock.ProductType.Name))
             {
@@ -121,37 +111,28 @@ Current Cost: @_newCost
         }
     }
 
-    private async void Draft()
+    private async void Save()
     {
         try
         {
-            foreach (var product in from product in _productList
-                from stock in _storage.Where(stock => product.productType.Name == stock.ProductType.Name && product.Quantity > stock.Quantity)
+            foreach (var product in from product in _project.Products
+                from stock in _storage.Where(stock => product.ProductType.Name == stock.ProductType.Name && product.Quantity > stock.Quantity)
                 select product)
             {
-                foreach (var stock in _storage.Where(stock => product.productType.Name == stock.ProductType.Name && product.Quantity > stock.Quantity))
+                foreach (var stock in _storage.Where(stock => product.ProductType.Name == stock.ProductType.Name && product.Quantity > stock.Quantity))
                 {
-                    _newStatus = "Wait";
-                    _estimatedDate = _project.UpdatedAt.AddDays(21);
+                    _project.Status = "Wait";
+                    _project.EstimatedDate = DateOnly.FromDateTime(DateTime.Now + TimeSpan.FromDays(21));
                 }
             }
-            var draftedProject = new Project
-            {
-                id = _project.id,
-                Name = _project.Name,
-                Location = _project.Description,
-                Description = _project.Description,
-                UserName = _project.UserName,
-                PhoneNumber = _project.PhoneNumber,
-                Status = _newStatus,
-                Cost = _newCost,
-                Products = _productList,
-                EstimatedDate = _estimatedDate,
-                UpdatedAt = DateOnly.FromDateTime(DateTime.Now),
-                CreatedAt = _project.CreatedAt
-            };
+            _project.EstimatedDate = DateOnly.FromDateTime(DateTime.Now + TimeSpan.FromDays(14));
+            var draftedProject = _project;
 
-            DialogParameters parameters = new() { { "_content", "Are you sure you want to draft the project?" } };
+            draftedProject.UpdatedAt = DateOnly.FromDateTime(DateTime.Now);
+            draftedProject.CreatedAt = _project.CreatedAt;
+
+
+            DialogParameters parameters = new() { { "Content", "Are you sure you want to draft the project?" } };
             var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
             if (dialogResult.Canceled) return;
@@ -167,15 +148,16 @@ Current Cost: @_newCost
 
     private async void AddProduct()
     {
-        DialogParameters parameters = new() { { "productsList", _productList } };
+        DialogParameters parameters = new() { { "productsList", _project.Products } };
         var res = await DialogService.ShowAsync<AddProductToDraft>("Add new Product for Draft", parameters);
         var result = await res.Result;
         if (result.Data is null) return;
-        
-        _newCost = 0;
-        foreach (var product in _productList)
+        _project.Products.Add(result.Data as ProjectProducts);
+
+        _project.Cost = 0;
+        foreach (var product in _project.Products)
         {
-            _newCost += product.productType.Price * product.Quantity;
+            _project.Cost += product.ProductType.Price * product.Quantity;
         }
         Snackbar.Add("Product added to draft!", Severity.Success);
         StateHasChanged();
@@ -185,18 +167,18 @@ Current Cost: @_newCost
     {
         try
         {
-            DialogParameters parameters = new() { { "_content", "Are you sure you want to delete this product from the draft?" } };
+            DialogParameters parameters = new() { { "Content", "Are you sure you want to delete this product from the draft?" } };
             var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
             if (dialogResult.Canceled) return;
 
-    //await this function to run in a separate thread
+    //await this function to  wait for the foreach to finish
             await Task.Run(() =>
             {
-                foreach (var product in _productList.Where(product => product.productType.Name == name))
+                foreach (var product in _project.Products.Where(product => product.ProductType.Name == name))
                 {
-                    _productList.Remove(product);
-                    _newCost -= product.productType.Price * product.Quantity;
+                    _project.Products.Remove(product);
+                    _project.Cost -= product.ProductType.Price * product.Quantity;
                     Snackbar.Add("Product deleted!", Severity.Success);
                     break;
                 }
@@ -214,32 +196,30 @@ Current Cost: @_newCost
     {
         try
         {
-            DialogParameters parameters = new() { { "_content", "Are you sure you want to save your edit?" } };
+            DialogParameters parameters = new() { { "Content", "Are you sure you want to save your edit?" } };
             var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var res = await result.Result;
-            Console.WriteLine(res.Canceled);
             if (res.Canceled)
             {
                 ResetItemToOriginalValues(product);
                 Snackbar.Add("Edit cancelled", Severity.Info);
-                Console.WriteLine("reset");
             }
             else
             {
                 var view = (ProjectProducts)product;
-                foreach (var prod in _productList.Where(prod => prod.productType.Name == view.productType.Name))
+                foreach (var prod in _project.Products.Where(prod => prod.ProductType.Name == view.ProductType.Name))
                 {
                     prod.Quantity = _selectedItem.Quantity;
                 }
 
-                _newCost = 0;
-                foreach (var prod in _productList)
+                _project.Cost = 0;
+                foreach (var prod in _project.Products)
                 {
-                    _newCost += prod.productType.Price * prod.Quantity;
+                    _project.Cost += prod.ProductType.Price * prod.Quantity;
                 }
                 Snackbar.Add("Successfully saved edit", Severity.Success);
             }
-            _productList = _project.Products;
+
             StateHasChanged();
         }
         catch (Exception e)
@@ -250,8 +230,8 @@ Current Cost: @_newCost
 
     private void ResetItemToOriginalValues(object element)
     {
-        ((ProjectProducts)element).productType.Name = _backup.productType.Name;
-        ((ProjectProducts)element).productType.Price = _backup.productType.Price;
+        ((ProjectProducts)element).ProductType.Name = _backup.ProductType.Name;
+        ((ProjectProducts)element).ProductType.Price = _backup.ProductType.Price;
         ((ProjectProducts)element).Quantity = _backup.Quantity;
     }
 
@@ -259,7 +239,7 @@ Current Cost: @_newCost
     {
         _backup = new ProjectProducts
         {
-            productType = ((ProjectProducts)element).productType,
+            ProductType = ((ProjectProducts)element).ProductType,
             Quantity = ((ProjectProducts)element).Quantity
         };
     }
@@ -268,7 +248,7 @@ Current Cost: @_newCost
 
     private bool FilterFunc(ProjectProducts product, string searchString)
     {
-        return string.IsNullOrWhiteSpace(searchString) || product.productType.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
+        return string.IsNullOrWhiteSpace(searchString) || product.ProductType.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
     }
-    
+
 }

@@ -51,8 +51,8 @@
     {
         try
         {
-            DialogParameters parameters = new() { { "_content", "Are you sure you want to save this user?" } };
-            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
+            DialogParameters parameters = new() { { "Content", "Are you sure you want to save this user?" } };
+            var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var asd = await result.Result;
             Console.WriteLine(asd.Data);
             if (asd.Data.Equals(true)) AddUser();
@@ -124,7 +124,7 @@
             UserName = _username,
             Password = _password,
             Salt = salt,
-            role = _role
+            Role = _role
         };
         userController.AddUser(user);
         MudDialog.Close(DialogResult.Ok(0));

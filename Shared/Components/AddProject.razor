@@ -1,72 +1,41 @@
 ﻿@using Models
 @using SWH.Interfaces
 @using SWH.Shared.enums
-@inject IDialogService DialogService
 @inject IProject ProjectController
 
 <MudDialog>
     <DialogContent>
         <div class="d-flex flex-column py-1">
-            <MudForm @bind-IsValid="@_success" @ref="form">
-                <MudTextField @bind-Value="ProjectName" Required="true" Immediate="true" Label="Project Name" Variant="Variant.Outlined" MaxLength="30" HelperText="Name of the project"/>
-                <MudTextField @bind-Value="Location" Required="true" Immediate="true" Label="Location" Variant="Variant.Outlined" MaxLength="100" HelperText="Location of the project"/>
-                <MudTextField @bind-Value="Description" Required="false" Immediate="true" Label="Description" Variant="Variant.Outlined" MaxLength="200" Lines="3" HelperText="Short description of the project (Optional)"/>
-                <MudTextField @bind-Value="UserName" Required="true" Immediate="true" Label="Expert" Variant="Variant.Outlined" HelperText="Project leader's username"/>
-                <MudTextField @bind-Value="PhoneNumber" Required="true" Immediate="true" Label="Phone Number" Variant="Variant.Outlined" HelperText="Customer phone number"/>
+            <MudForm @bind-IsValid="@_success" @ref="_form">
+                <MudTextField @bind-Value="Project.Name" Required="true" Immediate="true" Label="Project Name" Variant="Variant.Outlined" MaxLength="30" HelperText="Name of the project"/>
+                <MudTextField @bind-Value="Project.Location" Required="true" Immediate="true" Label="Location" Variant="Variant.Outlined" MaxLength="100" HelperText="Location of the project"/>
+                <MudTextField @bind-Value="Project.Description" Required="false" Immediate="true" Label="Description" Variant="Variant.Outlined" MaxLength="200" Lines="3" HelperText="Short description of the project (Optional)"/>
+                <MudTextField @bind-Value="Project.UserName" Required="true" Immediate="true" Label="Expert" Variant="Variant.Outlined" HelperText="Project leader's username"/>
+                <MudTextField @bind-Value="Project.PhoneNumber" Required="true" Immediate="true" Label="Phone Number" Variant="Variant.Outlined" HelperText="Customer phone number"/>
             </MudForm>
         </div>
     </DialogContent>
     <DialogActions>
-        <MudButton Disabled="@(!_success)" Color="Color.Info" Variant="Variant.Filled" OnClick="Close">Ok</MudButton>
+        <MudButton Disabled="@(!_success)" Color="Color.Info" Variant="Variant.Filled" OnClick="addProject">Ok</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
+
     [CascadingParameter]
     MudDialogInstance MudDialog { get; set; }
 
     private bool _success;
-    private string ProjectName { get; set; }
-    private string Location { get; set; }
-    private string Description { get; set; }
-    private string UserName { get; set; }
-    private string PhoneNumber { get; set; }
+    private Project Project { get; set; } = new();
     private List<ProjectProducts> Products { get; set; } = new();
+    MudForm _form;
 
-    MudForm form;
-    
-    async void Close()
-    {
-        try
-        {
-            DialogParameters parameters = new() { { "_content", "Are you sure you want to save this project?" } };
-            var result = DialogService.Show<ConfirmDialog>("Warning!", parameters);
-            var res = await result.Result;
-            Console.WriteLine("new project data "+ res.Data);
-            if (res.Data.Equals(true)) addProject();
-        }
-        catch (Exception e)
-        {
-    //Ignored
-        }
-        
-    }
-    
     private void addProject()
     {
         try
         {
-            Project project = new()
-            {
-                Name = ProjectName,
-                Location = Location,
-                Description = Description,
-                UserName = UserName,
-                PhoneNumber = PhoneNumber,
-                Products = Products
-            };
-        
-            ProjectController.AddProject(project);
+            Project.Products = Products;
+            ProjectController.AddProject(Project);
             MudDialog.Close(true);
         }
         catch (Exception e)
@@ -75,4 +44,5 @@
             throw;
         }
     }
+
 }

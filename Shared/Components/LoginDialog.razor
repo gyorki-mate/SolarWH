@@ -1,11 +1,11 @@
 ﻿@using SWH.Interfaces
 @using System.Text
 @using SWH.Models
-@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
-@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject Blazored.SessionStorage.ISessionStorageService SessionStorage
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject ISnackbar Snackbar
 @inject NavigationManager Nav
-@inject IUser userController
+@inject IUser UserController
 
 <MudDialog Class="Justify-content-start">
     <DialogContent >
@@ -15,7 +15,7 @@
             <br/>
             <MudGrid Justify="Justify.SpaceBetween" >
                 <MudItem Class="align-content-start">
-                    <MudCheckBox T="bool" @bind-Checked="keepMeLoggedIn">Remember me</MudCheckBox>
+                    <MudCheckBox T="bool" @bind-Checked="KeepMeLoggedIn">Remember me</MudCheckBox>
                 </MudItem>
                 <MudItem Class="align-self-end">
                     <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="Login" Disabled="@(!_success)">Ok</MudButton>
@@ -31,11 +31,11 @@
     MudDialogInstance MudDialog { get; set; }
 
     private bool _success;
-    private bool isAuthenticated { get; set; }
+    private bool IsAuthenticated { get; set; }
     private string UserName { get; set; }
     private string Password { get; set; }
-    private bool keepMeLoggedIn { get; set; }
-    private string salt;
+    private bool KeepMeLoggedIn { get; set; }
+    private string _salt;
 
     private async void Login()
     {
@@ -50,7 +50,7 @@
         {
             //TODO
             //get user from DB
-            user = userController.GetUser(UserName);
+            user = UserController.GetUser(UserName);
         }
         
         catch
@@ -58,27 +58,27 @@
             Snackbar.Add("Invalid username or password");
             return;
         }
-        var salted_pass = GenerateSHA256Hash(Password, user.Salt);
+        var saltedPass = GenerateSHA256Hash(Password, user.Salt);
       
-        if(!string.Equals(user.Password, salted_pass, StringComparison.CurrentCultureIgnoreCase))
+        if(!string.Equals(user.Password, saltedPass, StringComparison.CurrentCultureIgnoreCase))
         {
             Snackbar.Add("Invalid username or password");
             return;
         }
-        if (keepMeLoggedIn)
+        if (KeepMeLoggedIn)
         {
-            await localStorage.SetItemAsync("isAuthenticated", true);
-            await localStorage.SetItemAsync("UserName", UserName);
-            await localStorage.SetItemAsync("Role", user.role);
+            await LocalStorage.SetItemAsync("isAuthenticated", true);
+            await LocalStorage.SetItemAsync("UserName", UserName);
+            await LocalStorage.SetItemAsync("Role", user.Role);
         }
         else
         {
-            await sessionStorage.SetItemAsync("isAuthenticated", true);
-            await sessionStorage.SetItemAsync("UserName", UserName);
-            await sessionStorage.SetItemAsync("Role", user.role);
+            await SessionStorage.SetItemAsync("isAuthenticated", true);
+            await SessionStorage.SetItemAsync("UserName", UserName);
+            await SessionStorage.SetItemAsync("Role", user.Role);
             
         }
-        isAuthenticated = true;
+        IsAuthenticated = true;
         Snackbar.Add("Login successful");
         Nav.NavigateTo(Nav.Uri,forceLoad:true);
         MudDialog.Close();

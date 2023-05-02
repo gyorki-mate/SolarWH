@@ -7,8 +7,8 @@ namespace SWH.Models;
 public class Compartment
 {
     [BsonRepresentation(BsonType.ObjectId)]
-    public string id { get; private set; }
+    public string Id { get; private set; }
 
-    public int compartmentId { get; set; }
-    public List<Shared.enums.Shelf> Shelves { get; set; } = new();
+    public int CompartmentId { get; set; }
+    public List<Shelf> Shelves { get; set; } = new();
 }

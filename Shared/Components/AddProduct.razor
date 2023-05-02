@@ -2,14 +2,15 @@
 @using SWH.Interfaces
 @inject IDialogService DialogService
 @inject IProductType ProductTypeController
+@inject IProduct ProductController
 
 <MudDialog>
     <DialogContent>
         <div class="d-flex flex-column py-1">
             <MudForm @bind-IsValid="@_success" @ref="form">
                 <MudTextField @bind-Value="ProductName" Required="true" Immediate="true" Label="Product Name" Variant="Variant.Outlined" MaxLength="45" HelperText="Name of the product"/>
-                <MudNumericField @bind-Value="Price" Required="true" Immediate="true" Label="Price" Variant="Variant.Outlined" MaxLength="5" Min="0" Max="10000"  HelperText="Price of the product"/>
-                <MudNumericField @bind-Value="MaxCapacity" Required="true" Immediate="true" Label="Max Capacity" Variant="Variant.Outlined" Min="0" Max="64" MaxLength="2"  HelperText="Max quantity of the product"/>
+                <MudNumericField @bind-Value="Price" Required="true" Immediate="true" Label="Price" Variant="Variant.Outlined" MaxLength="5" Min="0" Max="10000" HelperText="Price of the product"/>
+                <MudNumericField @bind-Value="MaxCapacity" Required="true" Immediate="true" Label="Max Capacity" Variant="Variant.Outlined" Min="0" Max="10000" MaxLength="5" HelperText="Max quantity of the product"/>
             </MudForm>
         </div>
     </DialogContent>
@@ -20,6 +21,7 @@
 
 
 @code {
+
     [CascadingParameter]
     MudDialogInstance MudDialog { get; set; }
 
@@ -28,19 +30,21 @@
     private int Price { get; set; }
     private int MaxCapacity { get; set; }
     private List<ProductType> ProductTypes = new();
+    private List<Product> Products = new();
 
     MudForm form;
 
     protected override async Task OnInitializedAsync()
     {
         ProductTypes = await ProductTypeController.GetAllProductTypes();
+        Products = await ProductController.GetAllProducts();
     }
 
     async void Close()
     {
         try
         {
-            DialogParameters parameters = new() { { "_content", "Are you sure you want to save this product type?" } };
+            DialogParameters parameters = new() { { "Content", "Are you sure you want to save this product type?" } };
             var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var res = await result.Result;
             if (res.Data.Equals(true)) addProduct();
@@ -49,7 +53,6 @@
         {
     //Ignored
         }
-
     }
 
     private void addProduct()
@@ -61,6 +64,7 @@
                 MudDialog.Close(DialogResult.Ok("Product type already exists"));
                 return;
             }
+
             ProductType productType = new()
             {
                 Name = ProductName,
@@ -69,7 +73,16 @@
             };
 
             ProductTypeController.AddProductType(productType);
-            MudDialog.Close(DialogResult.Ok(productType)); 
+            if (!Products.Exists(x => ProductName == x.ProductType.Name))
+            {
+                ProductController.AddProduct(
+                    new Product
+                    {
+                        Quantity = 0,
+                        IsStored = false
+                    }, productType.Id);
+            }
+            MudDialog.Close(DialogResult.Ok(productType));
         }
         catch (Exception e)
         {
@@ -77,4 +90,5 @@
             throw;
         }
     }
+
 }

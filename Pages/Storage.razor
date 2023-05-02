@@ -55,9 +55,9 @@
                         <MudItem xs="3">
                             <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">
                                 <MudText>@containerText</MudText>
-                                @if (_compartments.Find(x => x.compartmentId == (c + 1))?.Shelves?.Find(x => x.shelfId == containerID).Product != null)
+                                @if (_compartments.Find(x => x.CompartmentId == (c + 1))?.Shelves?.Find(x => x.ShelfId == containerID).Product != null)
                                 {
-                                    var product = _compartments.Find(x => x.compartmentId == (c + 1))?.Shelves?.Find(x => x.shelfId == containerID).Product;
+                                    var product = _compartments.Find(x => x.CompartmentId == (c + 1))?.Shelves?.Find(x => x.ShelfId == containerID).Product;
                                     var productText = product.ProductType.Name + " (" + product.Quantity + ")";
                                     <MudText>@productText</MudText>    
                                 }
@@ -93,14 +93,16 @@
         var res = await DialogService.ShowAsync<NewShipmentDialog>("New Shipment", smallWidth);
         var result = await res.Result;
         //DO NOT WRITE CODE ABOVE THIS LINE OR THE APP WILL CRASH AS I DID NOT CARE TO HANDLE THE NULL EXCEPTION
+        // my man pls just use a try catch
         if (result.Canceled) return;
-
-        if (result.Data.GetType() != typeof(ProductType))
+        if (result.Data is null) 
         {
-            Snackbar.Add(result.Data.ToString(), Severity.Error);
+            //why the hell are you using a dialog service if you're not going to use the data it returns
+            Snackbar.Add("Something went wrong!", Severity.Error);
             return;
         }
         Snackbar.Add("Successfully added new shipment", Severity.Success);
+        _products = await ProductController.GetAllNonStoredProducts();
         StateHasChanged();
     }
     
@@ -118,12 +120,12 @@
             return;
         }
         
-        var _product = (Product)result.Data;
-        var _compartment = _compartments.Find(x => x.compartmentId == cid);
-        var _shelf = _compartment?.Shelves?.Find(x => x.shelfId == cid);
-        Debug.Assert(_shelf != null, nameof(_shelf) + " != null");
-        _shelf.Product = _product;
-        CompartmentController.UpdateCompartment(_compartment);
+        var product = (Product)result.Data;
+        var compartment = _compartments.Find(x => x.CompartmentId == cid);
+        var shelf = compartment?.Shelves?.Find(x => x.ShelfId == cid);
+        Debug.Assert(shelf != null, nameof(shelf) + " != null");
+        shelf.Product = product;
+        await CompartmentController.UpdateCompartment(compartment);
         Snackbar.Add("Successfully added new product", Severity.Success);
         StateHasChanged();
     }

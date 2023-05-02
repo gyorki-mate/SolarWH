@@ -17,14 +17,13 @@
 @* <MudButton OnClick="addShelf">add shelf</MudButton> *@
 @* <MudButton OnClick="listShelves">list shelf</MudButton> *@
 @* <MudButton OnClick="updateShelf">kill shelves update</MudButton> *@
-<MudButton OnClick="addCompartment">add compartment</MudButton>
+<MudButton OnClick="AddCompartment">add compartment</MudButton>
+<MudButton OnClick="listCompartments">list shelves</MudButton>
 
 
 
 @code{
-    List<Product> _products = new();
-    List<Models.Compartment> _shelves = new();
-    List<ProductType> _productTypes = new();
+   
 
     public void addProductType()
     {
@@ -58,71 +57,8 @@
         }
     }
 
-    public async void listShelves()
-    {
-    // var list = await CompartmentController.GetAllShelves();
-    // Console.WriteLine(list);
-    }
 
-    // public void addShelf()
-    // {
-    //     Models.Compartment s = new()
-    //     {
-    //         column = 0,
-    //         row = 0,
-    // //add to Compartments list
-    //         Compartments = new List<Shelf>()
-    //         {
-    //             new Shelf()
-    //             {
-    //                 id = 1,
-    //                 Products = new List<Product>()
-    //                 {
-    //                     new Product()
-    //                     {
-    //                         Quantity = 1,
-    //                         ProductType = new ProductType()
-    //                         {
-    //                             Name = "Iron",
-    //                             Price = 750,
-    //                             MaxCapacity = 8
-    //                         }
-    //                     }
-    //                 },
-    //             },
-    //             new Shelf()
-    //             {
-    //                 id = 2,
-    //                 Products = new List<Product>()
-    //                 {
-    //                     new Product()
-    //                     {
-    //                         Quantity = 7,
-    //                         ProductType = new ProductType()
-    //                         {
-    //                             Name = "asd",
-    //                             Price = 150,
-    //                             MaxCapacity = 8
-    //                         }
-    //                     },
-    //                     new Product()
-    //                     {
-    //                         Quantity = 1,
-    //                         ProductType = new ProductType()
-    //                         {
-    //                             Name = "asd",
-    //                             Price = 150,
-    //                             MaxCapacity = 8
-    //                         }
-    //                     }
-    //                 },
-    //             },
-    //         }
-    //     };
-    //     // CompartmentController.AddShelf(s);
-    // }
-
-    public async void addCompartment()
+    private async void AddCompartment()
     {
     //create 16 shelves in the Shelves list
         var compartments = await CompartmentController.GetAllCompartments();
@@ -131,16 +67,35 @@
         {
             Shelf s = new()
             {
-                shelfId = i + 1 + compartments.Count * 16,
+                ShelfId = i + 1 + compartments.Count * 16,
             };
             shelves.Add(s);
         }
         Compartment c = new()
         {
             Shelves = shelves,
-            compartmentId = compartments.Count + 1,
+            CompartmentId = compartments.Count + 1,
         };
          CompartmentController.AddCompartment(c);
     }
+
+    async void  listCompartments()
+    {
+        var compartments= await CompartmentController.GetAllCompartments();
+        
+        compartments.Find(x => x.Shelves?.Find(x => x.ShelfId == 1).Product != null);
+        
+        foreach (var c in compartments)
+        {
+            foreach (var shelf in c.Shelves)
+
+                Console.WriteLine(shelf.ShelfId);
+            
+            }
+        }
+    }
+
+
+                // compartments.Find(x => x.compartmentId == (c + 1)).Shelves?.Find(x => x.shelfId == containerID).Product != null;
 
 }

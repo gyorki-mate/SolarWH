@@ -1,16 +1,18 @@
 ﻿using SWH.Models;
 using SWH.Interfaces;
 using MongoDB.Driver;
+
 namespace SWH.Controllers;
 
-public class ProductTypeController: IProductType
+public class ProductTypeController : IProductType
 {
-    DbContext context = new DbContext();
+    private readonly DbContext _context = new();
+
     public async Task<List<ProductType>> GetAllProductTypes()
     {
         try
         {
-            var types = context.ProductTypeRecord.Find(FilterDefinition<ProductType>.Empty).ToListAsync();
+            var types = _context.ProductTypeRecord.Find(FilterDefinition<ProductType>.Empty).ToListAsync();
             return await types;
         }
         catch (Exception e)
@@ -22,14 +24,23 @@ public class ProductTypeController: IProductType
 
     public ProductType GetProductType(string typeId)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var productType = _context.ProductTypeRecord.Find(x => x.Id == typeId).FirstOrDefault();
+            return productType;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     public async void AddProductType(ProductType type)
     {
         try
         {
-            await context.ProductTypeRecord.InsertOneAsync(type);
+            await _context.ProductTypeRecord.InsertOneAsync(type);
         }
         catch (Exception e)
         {
@@ -42,13 +53,13 @@ public class ProductTypeController: IProductType
     {
         try
         {
-             await context.ProductTypeRecord.ReplaceOneAsync(x => x.id == type.id, type);
+            await _context.ProductTypeRecord.ReplaceOneAsync(x => x.Id == type.Id, type);
             //populate the product type
-            var productList =  await context.ProductRecord.Find(x => x.ProductType.id == type.id).ToListAsync();
+            var productList = await _context.ProductRecord.Find(x => x.ProductType.Id == type.Id).ToListAsync();
             foreach (var p in productList)
             {
                 p.ProductType = type;
-                context.ProductRecord.ReplaceOneAsync(x => x.Id == p.Id, p);
+                await _context.ProductRecord.ReplaceOneAsync(x => x.Id == p.Id, p);
             }
         }
         catch (Exception e)
@@ -58,11 +69,11 @@ public class ProductTypeController: IProductType
         }
     }
 
-    public void DeleteProductType(string typeID)
+    public void DeleteProductType(string typeId)
     {
         try
         {
-            context.ProductTypeRecord.DeleteOne(x => x.id == typeID);
+            _context.ProductTypeRecord.DeleteOne(x => x.Id == typeId);
         }
         catch (Exception e)
         {

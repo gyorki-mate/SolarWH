@@ -12,11 +12,11 @@ public class CompartmentController : ICompartment
     {
         try
         {
-            var shelves = await _context.CompartmentRecord.Find(FilterDefinition<Compartment>.Empty).ToListAsync();
+            var compartments = await _context.CompartmentRecord.Find(FilterDefinition<Compartment>.Empty).ToListAsync();
             //sort the shelves by row and column
             // shelves.Sort((x, y) => x.row.CompareTo(y.row) == 0 ? x.column.CompareTo(y.column) : x.row.CompareTo(y.row));
             
-            return shelves;
+            return compartments;
         }
         catch (Exception e)
         {
@@ -29,7 +29,7 @@ public class CompartmentController : ICompartment
     {
         try
         {
-            var compartment = _context.CompartmentRecord.Find(x => x.id == compartmentId).FirstOrDefault();
+            var compartment = _context.CompartmentRecord.Find(x => x.Id == compartmentId).FirstOrDefault();
             return compartment;
         }
         catch (Exception e)
@@ -41,12 +41,6 @@ public class CompartmentController : ICompartment
 
     public async void AddCompartment(Compartment compartment)
     {
-        // if (compartment.Shelves.Select(c => c.Product)
-        //     .Any(product => product.Quantity > product.ProductType.MaxCapacity))
-        // {
-        //     return "Quantity is more than the max quantity";
-        // }
-
         try
         {
             await _context.CompartmentRecord.InsertOneAsync(compartment);
@@ -69,7 +63,7 @@ public class CompartmentController : ICompartment
         
         try
         {
-            _context.CompartmentRecord.ReplaceOne(x => x.id == compartment.id, compartment);
+            _context.CompartmentRecord.ReplaceOne(x => x.Id == compartment.Id, compartment);
         }
         catch (Exception e)
         {
@@ -84,7 +78,7 @@ public class CompartmentController : ICompartment
     {
         try
         {
-            _context.CompartmentRecord.DeleteOne(x => x.id == compartmentId);
+            _context.CompartmentRecord.DeleteOne(x => x.Id == compartmentId);
         }
         catch (Exception e)
         {
