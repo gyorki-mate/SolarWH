@@ -55,6 +55,7 @@ public class CompartmentController : ICompartment
     public Task<string>? UpdateCompartment(Compartment compartment)
     {
         //TODO check if compartment is full
+        //TODO set shelfid in product somewhere else (maybe in the frontend)
         if (compartment.Shelves.Select(c => c.Product)
             .Any(product => product.Quantity > product.ProductType.MaxCapacity))
         {

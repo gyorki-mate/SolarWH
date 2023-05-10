@@ -11,4 +11,5 @@ public class Product
     public bool IsStored { get; set; }
     public int Quantity { get; set; } = 0;
     public ProductType ProductType { get; set; }
+    public int ShelfId { get; set; }
 }

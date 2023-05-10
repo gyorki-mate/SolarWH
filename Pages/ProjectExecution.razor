@@ -1,0 +1,19 @@
+﻿@inject IProject ProjectController
+@page "/ProjectExecution"
+@using SWH.Interfaces
+@using SWH.Models
+<h3>ProjectExecution</h3>
+
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    public Project Project { get; set; } = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        Project =  ProjectController.GetProject(Id);
+    }
+}

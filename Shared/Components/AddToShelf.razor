@@ -54,12 +54,11 @@
         {
             IsStored = true,
             Quantity = Amount,
-            ProductType = product.ProductType
         };
 
         try
         {
-            DialogParameters parameters = new() { { "_content", "Are you sure you want to add " + Amount + " " + product.ProductType.Name + " to the shelf?" } };
+            DialogParameters parameters = new() { { "Content", "Are you sure you want to add " + Amount + " " + product.ProductType.Name + " to the shelf?" } };
             var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
             if (dialogResult.Canceled) return;

@@ -12,7 +12,7 @@ public class ProductController : IProduct
     {
         try
         {
-            var products = await _context.ProductRecord.Find(x => x.IsStored == false).ToListAsync();
+            var products = await _context.ProductRecord.Find(x => x.IsStored == false && x.Quantity > 0).ToListAsync();
             return products;
         }
         catch (Exception e)

@@ -1,4 +1,7 @@
 ﻿@using Models
+@using MongoDB.Bson
+@using MongoDB.Bson.Serialization.Attributes
+@using MudBlazor.Extensions
 @inject IDialogService DialogService
 @inject Interfaces.IProductType ProductTypeController;
 @inject Interfaces.IProduct ProductController;
@@ -53,9 +56,12 @@
 
     private async void Close()
     {
-     
+        ProductType pType = new();
+        Product.ProductType = pType;
+
         Product.Quantity = Amount;
         Product.IsStored = false;
+        Product.ProductType.Id = Value;
     
         try
         {
@@ -70,15 +76,18 @@
     //ignored
         }
         //ez egy shit, ha nem létezik product (stock) akkor meghal a gecibe
-        if (!_products.Exists(x => x.ProductType.Name == Product.ProductType.Name))
+        if (!_products.Exists(x => x.ProductType.Id == Product.ProductType.Id))
         {
             ProductController.AddProduct(Product, Value);
         }
         else
         {
-            var p = _products.Find(x => x.ProductType.Name == Product.ProductType.Name);
-            p.Quantity += Product.Quantity;
-            ProductController.UpdateProduct(p);
+            var p = _products.Find(x => x.ProductType.Id == Value);
+            if (p != null)
+            {
+                p.Quantity += Product.Quantity;
+                ProductController.UpdateProduct(p);
+            }
         }
         MudDialog.Close(DialogResult.Ok(true));
     }

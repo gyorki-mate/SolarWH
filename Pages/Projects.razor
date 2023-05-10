@@ -41,6 +41,7 @@
         <MudTh> Project Information</MudTh>
         <MudTh> Draft Project</MudTh>
         <MudTh> Delete</MudTh>
+        <MudTh> Open Project</MudTh>
     </HeaderContent>
     <RowTemplate Context="projectContext">
         <MudTd DataLabel="name">@projectContext.Name</MudTd>
@@ -54,6 +55,9 @@
         </MudTd>
         <MudTd DataLabel="del">
             <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProject(projectContext.Id); })"/>
+        </MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Article" Color="Color.Default" OnClick=""></MudIconButton>
         </MudTd>
     </RowTemplate>
 </MudTable>
@@ -69,6 +73,13 @@
     protected override async Task OnInitializedAsync()
     {
         _projects = await ProjectController.GetAllProjects();
+        foreach (var p in _projects.Where(p => p.Status == "InProgress"))
+        {
+            if (p.EstimatedDate <= DateOnly.FromDateTime(DateTime.Now)) ;
+            {
+                p.Status = "Completed";
+            }
+        }
     }
     
     private async void AddProject()
