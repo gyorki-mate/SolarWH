@@ -10,5 +10,5 @@ public class Compartment
     public string Id { get; private set; }
 
     public int CompartmentId { get; set; }
-    public List<Shelf> Shelves { get; set; } = new();
+    public List<Shelf?> Shelves { get; set; } = new();
 }

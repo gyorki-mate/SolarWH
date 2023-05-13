@@ -52,19 +52,19 @@ public class CompartmentController : ICompartment
         }
     }
 
-    public Task<string>? UpdateCompartment(Compartment compartment)
+    public async Task<string> UpdateCompartment(Compartment compartment)
     {
         //TODO check if compartment is full
         //TODO set shelfid in product somewhere else (maybe in the frontend)
-        if (compartment.Shelves.Select(c => c.Product)
-            .Any(product => product.Quantity > product.ProductType.MaxCapacity))
-        {
-            return Task.FromResult("Quantity is more than the max quantity");
-        }
+        // if (compartment.Shelves.Select(c => c.Product)
+        //     .Any(product => product.Quantity > product.ProductType.MaxCapacity))
+        // {
+        //     return await Task.FromResult("Quantity is more than the max quantity");
+        // }
         
         try
         {
-            _context.CompartmentRecord.ReplaceOne(x => x.Id == compartment.Id, compartment);
+            await _context.CompartmentRecord.ReplaceOneAsync(x => x.Id == compartment.Id, compartment);
         }
         catch (Exception e)
         {
@@ -72,7 +72,7 @@ public class CompartmentController : ICompartment
             throw;
         }
 
-        return null;
+        return "";
     }
 
     public void DeleteCompartment(string compartmentId)

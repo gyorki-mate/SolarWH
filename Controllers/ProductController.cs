@@ -40,8 +40,8 @@ public class ProductController : IProduct
         try
         {
             var product = _context.ProductRecord.Find(x => x.Id == productId).FirstOrDefault();
-            product.ProductType =
-                _context.ProductTypeRecord.Find(x => x.Id == product.ProductType.Id).FirstOrDefault();
+            // product.ProductType =
+            //     _context.ProductTypeRecord.Find(x => x.Id == product.ProductType.Id).FirstOrDefault();
             return product;
         }
         catch (Exception e)
@@ -51,13 +51,14 @@ public class ProductController : IProduct
         }
     }
 
-    public void AddProduct(Product product, string productTypeId)
+    public Product AddProduct(Product product, string productTypeId)
     {
         try
         {
             var productType = _context.ProductTypeRecord.Find(x => x.Id == productTypeId).FirstOrDefault();
             product.ProductType = productType;
             _context.ProductRecord.InsertOne(product);
+            return product;
         }
         catch (Exception e)
         {
@@ -72,6 +73,8 @@ public class ProductController : IProduct
         
         //TODO check if product type max capacity is reached
         //TODO update Shelf as well
+        //TODO dont let Quantity go below 0
+        
         try
         {
             await _context.ProductRecord.ReplaceOneAsync(x => x.Id == product.Id, product);

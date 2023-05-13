@@ -47,7 +47,12 @@
     @for (var s = 0; s < 8; s++)
     {
         var compartmentText = "Compartment " + (s + 1);
+        var s5 = s;
         <MudTabPanel Text="@compartmentText">
+
+            @{
+                var s4 = s5;
+            }
             <MudGrid Class="mt-3">
                 @for (var r = 0; r < 4; r++)
                 {
@@ -55,20 +60,31 @@
                     {
                         var containerId = r * 4 + c + 1 + 16 * (_activeTabIndex - 1);
                         var containerText = "Container " + containerId;
+                        var s3 = s4;
+                        var c3 = c;
+                        var r3 = r;
                         <MudItem xs="3">
+                            @{
+                                var s2 = s3;
+                                var c2 = c3;
+                                var r2 = r3;
+                            }
 
                             <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">
                                 <MudText>@containerText</MudText>
 
-                                @if (_compartments.Find(x => x.CompartmentId == s + 1)?.Shelves?.Find(x => x.ShelfId == containerId)?.Product.Id != null)
+                                @if (_compartments.Find(x => x.CompartmentId == s2 + 1)?.Shelves?.Find(x => x.ShelfId == containerId)?.Product.Id != null)
                                 {
-                                    var product = _compartments.Find(x => x.CompartmentId == (s + 1))?.Shelves?.Find(x => x.ShelfId == containerId).Product;
+                                    var product = _compartments.Find(x => x.CompartmentId == (s2 + 1))?.Shelves?.Find(x => x.ShelfId == containerId).Product;
                                     var productText = product.ProductType.Name + " (" + product.Quantity + ")";
                                     <MudText>@productText</MudText>
                                 }
                                 else
                                 {
-                                    <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Outlined" Color="Color.Success" Size="Size.Small" Class="ml-3" OnClick="@(() => { StoreProduct(c + 1, s); })"/>
+                                    var s1 = s2;
+                                    var c1 = c2;
+                                    var r1 = r2;
+                                    <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Outlined" Color="Color.Success" Size="Size.Small" Class="ml-3" OnClick="@(() => { StoreProduct(c1 + 1 + r1 * 4 + 16 * (_activeTabIndex - 1), s1 + 1); })"/>
                                 }
                             </MudPaper>
                         </MudItem>
@@ -142,11 +158,9 @@
         var res = await DialogService.ShowAsync<NewShipmentDialog>("New Shipment", _smallWidth);
         var result = await res.Result;
     //DO NOT WRITE CODE ABOVE THIS LINE OR THE APP WILL CRASH AS I DID NOT CARE TO HANDLE THE NULL EXCEPTION
-    // my man pls just use a try catch
         if (result.Canceled) return;
         if (result.Data is null)
         {
-    //why the hell are you using a dialog service if you're not going to use the data it returns bozo
             Snackbar.Add("Something went wrong!", Severity.Error);
             return;
         }
@@ -170,17 +184,14 @@
 
         var product = (Product)result.Data;
         var compartment = _compartments.FindLast(x => x.CompartmentId == cid);
-        Console.WriteLine(cid);
-        Console.WriteLine(compartment.CompartmentId + "cid+shelf count " + compartment.Shelves.Count);
-        var shelf = compartment?.Shelves.Find(x => x.ShelfId == sid);
-        Console.WriteLine("shelfid:" + shelf.ShelfId);
 
-        if (shelf.Product.Id != null)
+        if (compartment != null)
         {
-            shelf.Product = product;
+            compartment.Shelves.Find(x => x.ShelfId == sid).Product = product;
+            var updateRes = await CompartmentController.UpdateCompartment(compartment)!;
+    //gets error from update 
+            Console.WriteLine(updateRes);
         }
-    //TODO update product as well 
-        if (compartment != null) await CompartmentController.UpdateCompartment(compartment)!;
 
         Snackbar.Add("Successfully added new product", Severity.Success);
         StateHasChanged();
