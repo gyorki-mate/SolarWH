@@ -21,9 +21,8 @@
 <MudButton OnClick="listCompartments">list shelves</MudButton>
 
 
-
 @code{
-   
+
 
     public void addProductType()
     {
@@ -76,26 +75,21 @@
             Shelves = shelves,
             CompartmentId = compartments.Count + 1,
         };
-         CompartmentController.AddCompartment(c);
+        CompartmentController.AddCompartment(c);
     }
 
-    async void  listCompartments()
+    async void listCompartments()
     {
-        var compartments= await CompartmentController.GetAllCompartments();
-        
+        var compartments = await CompartmentController.GetAllCompartments();
+
         compartments.Find(x => x.Shelves?.Find(x => x.ShelfId == 1).Product != null);
-        
+
         foreach (var c in compartments)
         {
             foreach (var shelf in c.Shelves)
 
                 Console.WriteLine(shelf.ShelfId);
-            
-            }
         }
     }
-
-
-                // compartments.Find(x => x.compartmentId == (c + 1)).Shelves?.Find(x => x.shelfId == containerID).Product != null;
 
 }

@@ -8,7 +8,7 @@
 @inject IDialogService DialogService
 @inject NavigationManager NavManager
 
-<MudTable Items="_projects" Dense="true" 
+<MudTable Items="_projects" Dense="true"
           CanCancelEdit="true"
           @bind-SelectedItem="_selectedItem"
           IsEditRowSwitchingBlocked="false"
@@ -57,7 +57,27 @@
             <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProject(projectContext.Id); })"/>
         </MudTd>
         <MudTd>
-            <MudIconButton Icon="@Icons.Material.Filled.Article" Color="Color.Default" OnClick=""></MudIconButton>
+            @if (projectContext.Status.Equals("Draft"))
+            {
+                <MudTooltip Text="Schedule">
+                    <MudIconButton Icon="@Icons.Material.Filled.EditAttributes" Title="Schedule" OnClick="@(() => { SetSchedule(projectContext.Id); })"/>
+                </MudTooltip>
+            }
+            @if (projectContext.Status is "Scheduled")
+            {
+                <MudTooltip Text="Start">
+                    <MudIconButton Icon="@Icons.Material.Filled.EditAttributes" OnClick="@(() => { SetInProgress(projectContext.Id); })"/>
+                </MudTooltip>
+            }
+            @if (projectContext.Status is "InProgress")
+            {
+                <MudTooltip Text="Complete">
+                    <MudIconButton Icon="@Icons.Material.Filled.Check" OnClick="@(() => { CompleteProject(projectContext.Id,true); })"/>
+                </MudTooltip>
+                <MudTooltip Text="Fail">
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="@(() => { CompleteProject(projectContext.Id,false); })"/>
+                </MudTooltip>
+            }
         </MudTd>
     </RowTemplate>
 </MudTable>
@@ -69,7 +89,7 @@
     private Project _selectedItem;
     private string _searchString1 = "";
     readonly DialogOptions _mediumWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
-    
+
     protected override async Task OnInitializedAsync()
     {
         _projects = await ProjectController.GetAllProjects();
@@ -81,7 +101,7 @@
             }
         }
     }
-    
+
     private async void AddProject()
     {
         var res = await DialogService.ShowAsync<AddProject>("Add new Product", _mediumWidth);
@@ -91,7 +111,7 @@
         Snackbar.Add("Project added!", Severity.Success);
         StateHasChanged();
     }
-    
+
     private async void DeleteProject(string index)
     {
         try
@@ -120,20 +140,32 @@
     {
         try
         {
-            DialogParameters parameters = new()
-            {
-                {"index", index}
-            };
+            DialogParameters parameters = new() { { "index", index } };
             var result = await DialogService.ShowAsync<ProjectInformation>("Project Information", parameters);
             var res = await result.Result;
             if (res.Canceled) return;
         }
         catch (Exception e)
         {
-            //ignored
+    //ignored
         }
     }
-    
+
+    private void SetSchedule(string index)
+    {
+        _projects.Find(p => p.Id == index)!.Status = "Scheduled";
+    }
+
+    private void SetInProgress(string index)
+    {
+        _projects.Find(p => p.Id == index)!.Status = "InProgress";
+    }
+
+    private void CompleteProject(string index, bool success)
+    {
+        _projects.Find(p => p.Id == index)!.Status = success ? "Completed" : "Failed";
+    }
+
     private async void CommitEdit(object project)
     {
         try
@@ -160,7 +192,7 @@
     //ignored
         }
     }
-    
+
     private void ResetItemToOriginalValues(object element)
     {
         ((Project)element).Name = _backup.Name;
@@ -170,7 +202,7 @@
         ((Project)element).PhoneNumber = _backup.PhoneNumber;
         ((Project)element).Status = _backup.Status;
     }
-    
+
     private void Backup(object element)
     {
         _backup = new Project
@@ -183,11 +215,12 @@
             Status = ((Project)element).Status
         };
     }
-    
+
     private bool FilterFunc1(Project project) => FilterFunc(project, _searchString1);
 
     private bool FilterFunc(Project project, string searchString)
     {
         return string.IsNullOrWhiteSpace(searchString) || project.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
     }
+
 }

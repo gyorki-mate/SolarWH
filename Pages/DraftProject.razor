@@ -115,6 +115,7 @@ Current Cost: @_project.Cost
     {
         try
         {
+            _project.Status = "Draft";
             foreach (var product in from product in _project.Products
                 from stock in _storage.Where(stock => product.ProductType.Name == stock.ProductType.Name && product.Quantity > stock.Quantity)
                 select product)
@@ -219,7 +220,6 @@ Current Cost: @_project.Cost
                 }
                 Snackbar.Add("Successfully saved edit", Severity.Success);
             }
-
             StateHasChanged();
         }
         catch (Exception e)
