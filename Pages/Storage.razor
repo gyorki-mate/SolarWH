@@ -105,7 +105,10 @@
                                             var s1 = s2;
                                             var c1 = c2;
                                             var r1 = r2;
-                                            <MudText>@productText</MudText>
+                                            <MudItem Class="d-flex">
+                                                <MudText>@productText</MudText>
+                                                <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Outlined" Color="Color.Success" Size="Size.Small" Class="ml-3" OnClick="@(() => { AddMoreProduct(c1 + 1 + r1 * 4 + 16 * (_activeTabIndex - 1), s1 + 1); })"/>
+                                            </MudItem>
                                         }
                                         else
                                         {
@@ -230,7 +233,7 @@
 
     private async void StoreProduct(int sid, int cid)
     {
-        var parameters = new DialogParameters { { "ShelfId", sid } };
+        var parameters = new DialogParameters { { "ShelfId", sid }};
         var res = await DialogService.ShowAsync<AddToShelf>("Add product to shelf", parameters, _smallWidth);
         var result = await res.Result;
         if (result.Canceled) return;
@@ -254,7 +257,31 @@
             ProductController.UpdateProduct(product);
         }
 
-        Snackbar.Add("Successfully added new product", Severity.Success);
+        Snackbar.Add("Successfully added product", Severity.Success);
+        StateHasChanged();
+    }
+
+    private async void AddMoreProduct(int sid, int cid)
+    {
+        var compartment = _compartments.FindLast(x => x.CompartmentId == cid);
+        Product product;
+        product = compartment.Shelves.Find(x => x.ShelfId == sid).Product;
+
+        if (product.Quantity == product.ProductType.MaxCapacity)
+        {
+            Snackbar.Add("The shelf is already full!", Severity.Error);
+            return;
+        }
+        
+        var parameters = new DialogParameters { { "Product", product }};
+        var res = await DialogService.ShowAsync<AddMoreToShelf>("Add more product to shelf", parameters, _smallWidth);
+        var result = await res.Result;
+        if (result.Canceled) return;
+
+        var updateRes = await CompartmentController.UpdateCompartment(compartment)!;
+        Console.WriteLine(updateRes);
+        
+        Snackbar.Add("Successfully added product", Severity.Success);
         StateHasChanged();
     }
 
