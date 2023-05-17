@@ -96,21 +96,26 @@
                             }
 
                             <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">
-                                <MudText>@containerText</MudText>
-                                var s1 = s2;
-                                var c1 = c2;
-                                var r1 = r2;
-                                @if (_compartments.Find(x => x.CompartmentId == s2 + 1)?.Shelves?.Find(x => x.ShelfId == containerId)?.Product.Id != null)
-                                {
-                                    var product = _compartments.Find(x => x.CompartmentId == (s2 + 1))?.Shelves?.Find(x => x.ShelfId == containerId).Product;
-                                    var productText = product.ProductType.Name + " (" + product.Quantity + ")";
-                                    <MudText>@productText</MudText>
-                                }
-                                else
-                                {
-                                    <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Outlined" Color="Color.Success" Size="Size.Small" Class="ml-3" OnClick="@(() => { StoreProduct(c1 + 1 + r1 * 4 + 16 * (_activeTabIndex - 1), s1 + 1); })"/>
-                                }
+                                <MudItem>
+                                    <MudText>@containerText</MudText>
 
+                                    @if (_compartments.Find(x => x.CompartmentId == s2 + 1)?.Shelves?.Find(x => x.ShelfId == containerId)?.Product?.Id != null)
+                                    {
+                                        var product = _compartments.Find(x => x.CompartmentId == (s2 + 1))?.Shelves?.Find(x => x.ShelfId == containerId).Product;
+                                        var productText = product.ProductType.Name + " (" + product.Quantity + ")";
+                                        <MudText>@productText</MudText>
+                                        var s1 = s2;
+                                        var c1 = c2;
+                                        var r1 = r2;
+                                    }
+                                    else
+                                    {
+                                        var s1 = s2;
+                                        var c1 = c2;
+                                        var r1 = r2;
+                                        <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Outlined" Color="Color.Success" Size="Size.Small" Class="ml-3" OnClick="@(() => { StoreProduct(c1 + 1 + r1 * 4 + 16 * (_activeTabIndex - 1), s1 + 1); })"/>
+                                    }
+                                </MudItem>
                             </MudPaper>
                         </MudItem>
                     }
