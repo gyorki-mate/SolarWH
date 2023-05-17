@@ -39,7 +39,9 @@
                 <MudTd DataLabel="name">@context.ProductType.Name</MudTd>
                 <MudTd DataLabel="Storage">@context.Quantity</MudTd>
                 <MudTd DataLabel="del">
-                    <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(context.Id); })"/>
+                    <MudTooltip Text="Delete">
+                        <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(context.Id); })"/>
+                    </MudTooltip>
                 </MudTd>
             </RowTemplate>
         </MudTable>
@@ -99,25 +101,25 @@
                                 <MudItem>
                                     <MudText>@containerText</MudText>
                                     @if (_compartments.Find(x => x.CompartmentId == s2 + 1)?.Shelves?.Find(x => x.ShelfId == containerId)?.Product?.Id != null)
-                                        {
-                                            var product = _compartments.Find(x => x.CompartmentId == (s2 + 1))?.Shelves?.Find(x => x.ShelfId == containerId).Product;
-                                            var productText = product.ProductType.Name + " (" + product.Quantity + ")";
-                                            var s1 = s2;
-                                            var c1 = c2;
-                                            var r1 = r2;
-                                            <MudItem Class="d-flex">
-                                                <MudText>@productText</MudText>
-                                                <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Outlined" Color="Color.Success" Size="Size.Small" Class="ml-3" OnClick="@(() => { AddMoreProduct(c1 + 1 + r1 * 4 + 16 * (_activeTabIndex - 1), s1 + 1); })"/>
-                                            </MudItem>
-                                        }
-                                        else
-                                        {
-                                            var s1 = s2;
-                                            var c1 = c2;
-                                            var r1 = r2;
-                                            <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Outlined" Color="Color.Success" Size="Size.Small" Class="ml-3" OnClick="@(() => { StoreProduct(c1 + 1 + r1 * 4 + 16 * (_activeTabIndex - 1), s1 + 1); })"/>
-                                        }
-                                    </MudItem>
+                                    {
+                                        var product = _compartments.Find(x => x.CompartmentId == (s2 + 1))?.Shelves?.Find(x => x.ShelfId == containerId).Product;
+                                        var productText = product.ProductType.Name + " (" + product.Quantity + ")";
+                                        var s1 = s2;
+                                        var c1 = c2;
+                                        var r1 = r2;
+                                        <MudItem Class="d-flex">
+                                            <MudText>@productText</MudText>
+                                            <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Outlined" Color="Color.Success" Size="Size.Small" Class="ml-3" OnClick="@(() => { AddMoreProduct(c1 + 1 + r1 * 4 + 16 * (_activeTabIndex - 1), s1 + 1); })"/>
+                                        </MudItem>
+                                    }
+                                    else
+                                    {
+                                        var s1 = s2;
+                                        var c1 = c2;
+                                        var r1 = r2;
+                                        <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Outlined" Color="Color.Success" Size="Size.Small" Class="ml-3" OnClick="@(() => { StoreProduct(c1 + 1 + r1 * 4 + 16 * (_activeTabIndex - 1), s1 + 1); })"/>
+                                    }
+                                </MudItem>
                             </MudPaper>
                         </MudItem>
                     }
@@ -270,15 +272,15 @@
             Snackbar.Add("The shelf is already full!", Severity.Error);
             return;
         }
-        
-        var parameters = new DialogParameters { { "Product", product }};
+
+        var parameters = new DialogParameters { { "Product", product } };
         var res = await DialogService.ShowAsync<AddMoreToShelf>("Add more product to shelf", parameters, _smallWidth);
         var result = await res.Result;
         if (result.Canceled) return;
 
         var updateRes = await CompartmentController.UpdateCompartment(compartment)!;
         Console.WriteLine(updateRes);
-        
+
         Snackbar.Add("Successfully added product", Severity.Success);
         StateHasChanged();
     }
