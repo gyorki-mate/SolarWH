@@ -28,7 +28,7 @@
         </MudItem>
         <MudSpacer/>
         <MudTooltip Class="align-content-lg-end" Text="Add product">
-            <MudIconButton OnClick="AddProduct" Icon="@Icons.Material.Outlined.Add" Size="Size.Medium"/>
+            <MudIconButton OnClick="AddProduct" Icon="@Icons.Material.Outlined.Add" Size="Size.Large"/>
         </MudTooltip>
     </ToolBarContent>
     <HeaderContent>
@@ -54,7 +54,9 @@
         <MudTd DataLabel="maxQuantity">@context.ProductType.MaxCapacity</MudTd>
         <MudTd DataLabel="Storage">@context.Quantity</MudTd>
         <MudTd DataLabel="del">
-            <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(context.ProductType.Id); })"/>
+            <MudTooltip Text="Delete">
+                <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(context.ProductType.Id); })"/>
+            </MudTooltip>
         </MudTd>
     </RowTemplate>
     <RowEditingTemplate Context="productTypeContext">

@@ -23,7 +23,7 @@
                 </MudItem>
                 <MudSpacer/>
                 <MudTooltip Class="align-content-lg-end" Text="Add product">
-                    <MudIconButton OnClick="NewShipment" Icon="@Icons.Material.Outlined.Add" Size="Size.Medium"/>
+                    <MudIconButton OnClick="NewShipment" Icon="@Icons.Material.Outlined.Add" Size="Size.Large"/>
                 </MudTooltip>
             </ToolBarContent>
             <HeaderContent>
@@ -98,7 +98,7 @@
                             <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">
                                 <MudItem>
                                     <MudText>@containerText</MudText>
-                                    @if (_compartments.Find(x => x.CompartmentId == s2 + 1)?.Shelves?.Find(x => x.ShelfId == containerId)?.Product.Id != null)
+                                    @if (_compartments.Find(x => x.CompartmentId == s2 + 1)?.Shelves?.Find(x => x.ShelfId == containerId)?.Product?.Id != null)
                                         {
                                             var product = _compartments.Find(x => x.CompartmentId == (s2 + 1))?.Shelves?.Find(x => x.ShelfId == containerId).Product;
                                             var productText = product.ProductType.Name + " (" + product.Quantity + ")";

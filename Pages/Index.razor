@@ -10,53 +10,11 @@
 
 <PageTitle>Index</PageTitle>
 
-<h1>Hello, world!</h1>
-@* <MudButton OnClick="addProductType">add productType</MudButton> *@
-<MudButton OnClick="addProduct">add prod</MudButton>
-@* <MudButton OnClick="listProducts">list prod</MudButton> *@
-@* <MudButton OnClick="addShelf">add shelf</MudButton> *@
-@* <MudButton OnClick="listShelves">list shelf</MudButton> *@
-@* <MudButton OnClick="updateShelf">kill shelves update</MudButton> *@
-<MudButton OnClick="AddCompartment">add compartment</MudButton>
-<MudButton OnClick="listCompartments">list shelves</MudButton>
-
+<h1>Welcome to Solar Warehouse!</h1>
+<MudButton OnClick="AddCompartment" hidden="true">add compartment</MudButton>
 
 @code{
-
-
-    public void addProductType()
-    {
-        ProductType? pt = new()
-        {
-            MaxCapacity = 8,
-            Name = "Iron",
-            Price = 750
-        };
-        ProductTypeController.AddProductType(pt);
-    }
-
-    public void addProduct()
-    {
-        Product p = new()
-        {
-            Quantity = 1,
-        };
-
-        ProductController.AddProduct(p, "6443e147191c8079c34efa92");
-    }
-
-    public async void listProducts()
-    {
-        var list = await ProductController.GetAllProducts();
-        Console.WriteLine(list);
-        foreach (var p in list)
-        {
-            Console.WriteLine(p.ProductType.Name + " " + p.ProductType.Price);
-            Console.WriteLine(p.ProductType);
-        }
-    }
-
-
+    
     private async void AddCompartment()
     {
     //create 16 shelves in the Shelves list
@@ -77,19 +35,4 @@
         };
         CompartmentController.AddCompartment(c);
     }
-
-    async void listCompartments()
-    {
-        var compartments = await CompartmentController.GetAllCompartments();
-
-        compartments.Find(x => x.Shelves?.Find(x => x.ShelfId == 1).Product != null);
-
-        foreach (var c in compartments)
-        {
-            foreach (var shelf in c.Shelves)
-
-                Console.WriteLine(shelf.ShelfId);
-        }
-    }
-
 }
