@@ -98,7 +98,7 @@
                             <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">
                                 <MudText>@containerText</MudText>
 
-                                @if (_compartments.Find(x => x.CompartmentId == s2 + 1)?.Shelves?.Find(x => x.ShelfId == containerId)?.Product.Id != null)
+                                @if (_compartments.Find(x => x.CompartmentId == s2 + 1)?.Shelves?.Find(x => x != null && x.ShelfId == containerId)?.Product?.Id != null)
                                 {
                                     var product = _compartments.Find(x => x.CompartmentId == (s2 + 1))?.Shelves?.Find(x => x.ShelfId == containerId).Product;
                                     var productText = product.ProductType.Name + " (" + product.Quantity + ")";
