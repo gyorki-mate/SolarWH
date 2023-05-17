@@ -171,7 +171,6 @@
 
     private async void StoreProduct(int sid, int cid)
     {
-        Console.WriteLine("cid: " + cid + " sid: " + sid);
         var res = await DialogService.ShowAsync<AddToShelf>("Add product to shelf", _smallWidth);
         var result = await res.Result;
         if (result.Canceled) return;
@@ -189,6 +188,8 @@
         {
             compartment.Shelves.Find(x => x.ShelfId == sid).Product = product;
             var updateRes = await CompartmentController.UpdateCompartment(compartment)!;
+            //update product in db
+            
     //gets error from update 
             Console.WriteLine(updateRes);
         }

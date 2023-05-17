@@ -3,7 +3,6 @@
 @using SWH.Interfaces
 @using SWH.Shared.Components
 @using SWH.Shared.enums
-@using MudBlazor.Extensions
 @inject IDialogService DialogService
 @inject IProject ProjectController;
 @inject IProductType ProductTypeController;
@@ -12,7 +11,7 @@
 @inject NavigationManager NavManager
 
 <h3>Drafting Project: @_project.Name</h3>
-Current Cost: @_project.Cost
+<h3>Current Cost: @_project.Cost</h3>
 
 <MudTable Items="_project.Products" Dense="true" CanCancelEdit="true"
           @bind-SelectedItem="_selectedItem"
@@ -58,7 +57,9 @@ Current Cost: @_project.Cost
         <MudTd DataLabel="storage">
             @foreach (var stock in _storage.Where(stock => stock.ProductType.Name == productListContext.ProductType.Name))
             {
-                @stock.Quantity
+                @(_filteredStorage.Single(x => x.ProductType.Name == productListContext.ProductType.Name).Quantity
+                  + "/" +
+                  stock.Quantity)
             }
         </MudTd>
         <MudTd DataLabel="del">
@@ -74,7 +75,9 @@ Current Cost: @_project.Cost
         <MudTd DataLabel="storage">
             @foreach (var stock in _storage.Where(stock => stock.ProductType.Name == productListContext.ProductType.Name))
             {
-                @stock.Quantity
+                @(_filteredStorage.Single(x => x.ProductType.Name == productListContext.ProductType.Name).Quantity
+                  + "/" +
+                  stock.Quantity)
             }
         </MudTd>
     </RowEditingTemplate>
@@ -87,7 +90,9 @@ Current Cost: @_project.Cost
 
     private List<ProductType> _productTypes = new();
     List<Product> _products = new();
-    private List<ProjectProducts> _storage = new();
+    private readonly List<ProjectProducts> _storage = new();
+    private readonly List<ProjectProducts> _filteredStorage = new();
+    private List<Project> _projects = new();
 
     private Project _project = new();
     private string _searchString1 = "";
@@ -97,17 +102,37 @@ Current Cost: @_project.Cost
     protected override async Task OnInitializedAsync()
     {
         _project = ProjectController.GetProject(ProjectIndex);
+        _projects = await ProjectController.GetAllProjects();
         _productTypes = await ProductTypeController.GetAllProductTypes();
         _products = await ProductController.GetAllProducts();
 
-        foreach (var stock in _productTypes.Select(productType => new ProjectProducts() { ProductType = productType }))
+        foreach (var stock in _productTypes.Select(productType => new ProjectProducts { ProductType = productType }))
         {
             foreach (var product in _products.Where(product => product.ProductType.Name == stock.ProductType.Name))
             {
                 stock.Quantity += product.Quantity;
             }
 
+            var newStock = new ProjectProducts
+            {
+                ProductType = stock.ProductType,
+                Quantity = stock.Quantity
+            };
+
             _storage.Add(stock);
+            _filteredStorage.Add(newStock);
+        }
+    //foreach project in projects, foreach product in project.products, foreach stock in _filteredStorage, if product.producttype.name == stock.producttype.name, stock.quantity -= product.quantity
+        foreach (var project in _projects)
+        {
+            if (project.Id == ProjectIndex) continue;
+            foreach (var product in project.Products)
+            {
+                foreach (var stock in _filteredStorage.Where(stock => stock.ProductType.Name == product.ProductType.Name))
+                {
+                    stock.Quantity -= product.Quantity;
+                }
+            }
         }
     }
 
@@ -131,7 +156,6 @@ Current Cost: @_project.Cost
 
             draftedProject.UpdatedAt = DateOnly.FromDateTime(DateTime.Now);
             draftedProject.CreatedAt = _project.CreatedAt;
-
 
             DialogParameters parameters = new() { { "Content", "Are you sure you want to draft the project?" } };
             var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
