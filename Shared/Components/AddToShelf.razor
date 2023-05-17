@@ -60,12 +60,6 @@
         _products = await ProductController.GetAllNonStoredProducts();
     }
 
-    protected override void OnAfterRender(bool firstRender)
-    {
-        
-        Console.WriteLine("Max value: " + MaxValue);
-    }
-
     private async void Close()
     {
         await Task.Run(() =>
@@ -73,28 +67,17 @@
             foreach (var productV in _products)
             {
                 if (productV.ProductType?.Name != Value) continue;
-                Console.WriteLine( "Max value: " + MaxValue);
                 if (Amount > productV.ProductType.MaxCapacity)
                 {
-                    Console.WriteLine("Max value is bigger than max capacity");
                     Amount = productV.ProductType.MaxCapacity;
                 }
                 if (Amount <= productV.Quantity) continue;
-                Console.WriteLine("Dont have enough products");
                 Amount = productV.Quantity;
             }
         });
 
         var product = _products.Find(x => x.ProductType.Name == Value);
 
-        if (Amount > product.ProductType.MaxCapacity)
-        {
-            overlimit = true;
-            Amount = product.ProductType.MaxCapacity;
-        }
-        else 
-            overlimit = false;
-        
         var newProduct = new Product
         {
             IsStored = true,
@@ -104,13 +87,7 @@
 
         try
         {
-            DialogParameters parameters;
-            if (overlimit)
-            {
-                parameters = new() { { "Content", "The shelf can only store " + Amount + " " + product.ProductType.Name + ", do you want to add that many?"} };
-            }
-            else
-                parameters = new() { { "Content", "Are you sure you want to add " + Amount + " " + product.ProductType.Name + " to the shelf?" } };
+            DialogParameters parameters = new() { { "Content", "Are you sure you want to add " + Amount + " " + product.ProductType.Name + " to the shelf?" } };
             var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
             if (dialogResult.Canceled) return;

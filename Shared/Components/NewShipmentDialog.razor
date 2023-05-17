@@ -65,8 +65,8 @@
     
         try
         {
-            //TODO nem jo
-            DialogParameters parameters = new() { { "Content", "Are you sure you want to add " + Amount + " " + Value + " to the storage?" } };
+            var name = _productsTypes.Find(x => x?.Id == Value)?.Name;
+            DialogParameters parameters = new() { { "Content", "Are you sure you want to add " + Amount + " " + name + " to the storage?" } };
             var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
             if (dialogResult.Canceled) return;

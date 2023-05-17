@@ -41,28 +41,34 @@
             <MudTableSortLabel SortBy="new Func<Project, object>(x => x.Status)">Project Status</MudTableSortLabel>
         </MudTh>
         <MudTh> Project Information</MudTh>
-        <MudTh> Draft Project</MudTh>
-        <MudTh> Delete</MudTh>
         <MudTh> Open Project</MudTh>
+        <MudTh> Delete</MudTh>
+        <MudTh> Set Status</MudTh>
     </HeaderContent>
     <RowTemplate Context="projectContext">
         <MudTd DataLabel="name">@projectContext.Name</MudTd>
         <MudTd DataLabel="location">@projectContext.Location</MudTd>
         <MudTd DataLabel="status">@projectContext.Status</MudTd>
         <MudTd DataLabel="info">
-            <MudIconButton Icon="@Icons.Filled.Info" Color="Color.Info" OnClick="@(() => { Information(projectContext.Id); })"/>
+            <MudTooltip Text="Additional Information">
+                <MudIconButton Icon="@Icons.Filled.Info" Color="Color.Info" OnClick="@(() => { Information(projectContext.Id); })"/>
+            </MudTooltip>
         </MudTd>
         <MudTd DataLabel="draft">
-            <MudIconButton Icon="@Icons.Filled.Edit" OnClick="@(() => { DraftProject(projectContext.Id); })"/>
+            <MudTooltip Text="Open Project">
+                <MudIconButton Icon="@Icons.Filled.Edit" OnClick="@(() => { DraftProject(projectContext.Id); })"/>
+            </MudTooltip>
         </MudTd>
         <MudTd DataLabel="del">
-            <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProject(projectContext.Id); })"/>
+            <MudTooltip Text="Delete">
+                <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProject(projectContext.Id); })"/>
+            </MudTooltip>
         </MudTd>
         <MudTd>
             @if (projectContext.Status.Equals("Draft"))
             {
                 <MudTooltip Text="Schedule">
-                    <MudIconButton Icon="@Icons.Material.Filled.EditAttributes" Title="Schedule" OnClick="@(() => { SetSchedule(projectContext.Id); })"/>
+                    <MudIconButton Icon="@Icons.Material.Filled.Schedule" Title="Schedule" OnClick="@(() => { SetSchedule(projectContext.Id); })"/>
                 </MudTooltip>
             }
             @if (projectContext.Status is "Scheduled")
@@ -99,11 +105,21 @@
         _compartments = await CompartmentController.GetAllCompartments();
         _projects = await ProjectController.GetAllProjects();
         _nonStoredProducts = await ProductController.GetAllNonStoredProducts();
-        foreach (var p in _projects.Where(p => p.Status == "InProgress"))
+        foreach (var project in _projects)
         {
-            if (p.EstimatedDate <= DateOnly.FromDateTime(DateTime.Now)) ;
+            if (project.Status == "InProgress")
             {
-                p.Status = "Completed";
+                if (project.EstimatedDate <= DateOnly.FromDateTime(DateTime.Now)) ;
+                {
+                    project.Status = "Completed";
+                }
+            }
+            if (project.Status != "Wait") continue;
+            foreach (var product in from product in project.Products
+                from nonStoredProduct in _nonStoredProducts.Where(nonStoredProduct => product.ProductType.Name == nonStoredProduct.ProductType?.Name).Where(nonStoredProduct => product.Quantity <= nonStoredProduct.Quantity)
+                select product)
+            {
+                project.Status = "Draft";
             }
         }
     }
