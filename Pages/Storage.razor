@@ -43,6 +43,31 @@
                 </MudTd>
             </RowTemplate>
         </MudTable>
+
+        <MudSpacer/>
+        <MudGrid>
+            <MudItem xs="3">
+                        <MudTable Items="_getAllShit" Dense="true" Style="bottom: 10px" hidden="@(_getAllShit.Count == 0)">
+                            <HeaderContent>
+                                <MudTh>
+                                    Product Name
+                                </MudTh>
+                                <MudTh>
+                                    Needed Quantity
+                                </MudTh>
+                            </HeaderContent>
+                            <RowTemplate Context="context">
+                                <MudTd DataLabel="name">@context.ProductType.Name</MudTd>
+                                <MudTd DataLabel="Storage">@context.Quantity</MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </MudItem>
+                    <MudItem xs="3" >
+                        <MudFab StartIcon="@Icons.Material.Filled.ShoppingCartCheckout" Label="Order" Color="Color.Tertiary" OnClick="OrderRequired" hidden="@(_getAllShit.Count == 0)"/>
+                    </MudItem>
+        </MudGrid>
+        
+
     </MudTabPanel>
     @for (var s = 0; s < 8; s++)
     {
@@ -116,25 +141,26 @@
         _compartments = await CompartmentController.GetAllCompartments();
         _projects = await ProjectController.GetAllProjects();
         _allProductsList = await ProductController.GetAllProducts();
-    }
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender) return;
         AllWeNeed();
-    }
 
+        if (_getAllShit.Count != 0)
+        {
+            Console.WriteLine("GET MORE STUFF DUM");
+        }
+    }
+    
     private void AllWeNeed()
     {
-        foreach (var reqProducts in _projects.SelectMany(p => p.Products.Where(pProduct => pProduct.ProductType.Name == _nonStoredProducts.Find(x => x.ProductType.Name == pProduct.ProductType.Name)?.ProductType.Name)))
+    //go through each project and add all the products to a list, if the product is already in the list, add the quantity to the existing product
+        foreach (var product in _projects.SelectMany(project => project.Products))
         {
-            if (_shitFromProjects.Find(x => x.ProductType.Name == reqProducts.ProductType.Name) == null)
+            if (_shitFromProjects.Find(x => x.ProductType.Name == product.ProductType.Name) != null)
             {
-                _shitFromProjects.Add(new ProjectProducts { ProductType = reqProducts.ProductType, Quantity = reqProducts.Quantity });
+                _shitFromProjects.Find(x => x.ProductType.Name == product.ProductType.Name)!.Quantity += product.Quantity;
             }
             else
             {
-                _shitFromProjects.Find(x => x.ProductType.Name == reqProducts.ProductType.Name)!.Quantity += reqProducts.Quantity;
+                _shitFromProjects.Add(new ProjectProducts { ProductType = product.ProductType, Quantity = product.Quantity });
             }
         }
 
@@ -151,6 +177,35 @@
         {
             _getAllShit.Add(new ProjectProducts { ProductType = projectProduct.ProductType, Quantity = (_allShitWeHave.Find(x => x.ProductType.Name == projectProduct.ProductType.Name)?.Quantity - projectProduct.Quantity) * -1 ?? 0 });
         }
+        StateHasChanged();
+    }
+
+    private void OrderRequired()
+    {
+        foreach (var req in _getAllShit)
+        {
+            Product product = new()
+            {
+                ProductType = req.ProductType,
+                Quantity = req.Quantity,
+                IsStored = false,
+                ShelfId = 0
+                
+            };
+            if (!_nonStoredProducts.Exists(x => x.ProductType?.Id == req.ProductType.Id))
+            {
+                
+                ProductController.AddProduct(product, req.ProductType.Id);
+            }
+        else
+            {
+                var p = _nonStoredProducts.Find(x => x.ProductType?.Id == req.ProductType.Id);
+                if (p == null) continue;
+                p.Quantity += product.Quantity;
+                ProductController.UpdateProduct(p);
+            }
+        }
+        StateHasChanged();
     }
 
     private async void NewShipment()
@@ -189,13 +244,10 @@
         if (compartment != null)
         {
             compartment.Shelves.Find(x => x.ShelfId == sid).Product = product;
+    //gets error from update compartment
             var updateRes = await CompartmentController.UpdateCompartment(compartment)!;
-            ProductController.UpdateProduct(product);
-            //TODO update product in db
-            
-            
-    //gets error from update 
             Console.WriteLine(updateRes);
+            ProductController.UpdateProduct(product);
         }
 
         Snackbar.Add("Successfully added new product", Severity.Success);

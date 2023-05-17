@@ -75,7 +75,7 @@
         {
     //ignored
         }
-        //ez egy shit, ha nem létezik product (stock) akkor meghal a gecibe
+        
         if (!_products.Exists(x => x.ProductType.Id == Product.ProductType.Id))
         {
             ProductController.AddProduct(Product, Value);

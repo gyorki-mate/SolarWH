@@ -196,16 +196,16 @@
     //save compartment
                 CompartmentController.UpdateCompartment(compartment);
             }
-    // //TODO if product quantity still not 0 remove from unstored products
-    //         if (product.Quantity <= 0) continue;
-    //         Console.WriteLine("Product not found in shelves");
-    //         foreach (var p in _nonStoredProducts.Where(p => p.ProductType?.Name == product.ProductType.Name))
-    //         {
-    //             p.Quantity -= product.Quantity;
-    //             ProductController.UpdateProduct(p);
-    //             Console.WriteLine("Product taken from unstored products");
-    //             break;
-    //         }
+    //if product quantity still not 0 remove from unstored products
+            if (product.Quantity <= 0) continue;
+            Console.WriteLine("Product not found in shelves");
+            foreach (var p in _nonStoredProducts.Where(p => p.ProductType?.Name == product.ProductType.Name))
+            {
+                p.Quantity -= product.Quantity;
+                ProductController.UpdateProduct(p);
+                Console.WriteLine("Product taken from unstored products");
+                break;
+            }
         }
 
         _projects.Find(p => p.Id == index)!.Status = "InProgress";

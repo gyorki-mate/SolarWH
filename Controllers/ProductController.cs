@@ -89,8 +89,6 @@ public class ProductController : IProduct
     {
         try
         {
-            //TODO update Shelf as well
-            _context.CompartmentRecord.DeleteOne(x => x.Shelves.Any(c => c.Product.Id == productId));
             _context.ProductRecord.DeleteOne(x => x.Id == productId);
         }
         catch (Exception e)
