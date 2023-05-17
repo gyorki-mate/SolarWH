@@ -183,13 +183,16 @@
         }
 
         var product = (Product)result.Data;
+        Console.WriteLine(product.ProductType.Name + " " + product.Quantity + " " + product.Id + " " + product.ShelfId);
         var compartment = _compartments.FindLast(x => x.CompartmentId == cid);
 
         if (compartment != null)
         {
             compartment.Shelves.Find(x => x.ShelfId == sid).Product = product;
             var updateRes = await CompartmentController.UpdateCompartment(compartment)!;
-            //update product in db
+            ProductController.UpdateProduct(product);
+            //TODO update product in db
+            
             
     //gets error from update 
             Console.WriteLine(updateRes);

@@ -4,6 +4,7 @@
 @using SWH.Interfaces
 @using SWH.Shared.Components
 @inject IProject ProjectController
+@inject IProduct ProductController
 @inject ICompartment CompartmentController
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
@@ -73,10 +74,10 @@
             @if (projectContext.Status is "InProgress")
             {
                 <MudTooltip Text="Complete">
-                    <MudIconButton Icon="@Icons.Material.Filled.Check" OnClick="@(() => { CompleteProject(projectContext.Id,true); })"/>
+                    <MudIconButton Icon="@Icons.Material.Filled.Check" OnClick="@(() => { CompleteProject(projectContext.Id, true); })"/>
                 </MudTooltip>
                 <MudTooltip Text="Fail">
-                    <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="@(() => { CompleteProject(projectContext.Id,false); })"/>
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="@(() => { CompleteProject(projectContext.Id, false); })"/>
                 </MudTooltip>
             }
         </MudTd>
@@ -87,6 +88,7 @@
 
     List<Project> _projects = new();
     List<Compartment> _compartments = new();
+    private List<Product> _nonStoredProducts = new();
     private Project _backup = new();
     private Project _selectedItem;
     private string _searchString1 = "";
@@ -96,6 +98,7 @@
     {
         _compartments = await CompartmentController.GetAllCompartments();
         _projects = await ProjectController.GetAllProjects();
+        _nonStoredProducts = await ProductController.GetAllNonStoredProducts();
         foreach (var p in _projects.Where(p => p.Status == "InProgress"))
         {
             if (p.EstimatedDate <= DateOnly.FromDateTime(DateTime.Now)) ;
@@ -157,37 +160,62 @@
     private void SetSchedule(string index)
     {
         _projects.Find(p => p.Id == index)!.Status = "Scheduled";
+        ProjectController.UpdateProject(_projects.Find(p => p.Id == index)!);
     }
 
     private void SetInProgress(string index)
     {
-        Project project = _projects.Find(p => p.Id == index)!;
+        var project = _projects.Find(p => p.Id == index)!;
         foreach (var product in project.Products)
         {
-            //search for product in compartments.shelves where prouct.shelfid == shelf.id and set shelf.productType to null and Product.shelfId to 0 and Quantity to 0
+            var quantity = product.Quantity;
+    //search for product in compartments.shelves where prouct.shelfid == shelf.id and set shelf.productType to null and Product.shelfId to 0 and Quantity to 0
             foreach (var compartment in _compartments)
             {
                 foreach (var shelf in compartment.Shelves)
                 {
-                    if (shelf?.Product?.ProductType == product.ProductType)
+                    if (shelf?.Product?.ProductType?.Name == product.ProductType.Name)
                     {
-                        shelf.Product.ProductType = null;
-                        shelf.Product.Id = "0";
-                        shelf.Product.Quantity = 0;
-                        shelf.Product.IsStored = false;
+                        Console.WriteLine("Product found in shelf" + shelf.Id);
+                        if (shelf.Product.Quantity > product.Quantity)
+                        {
+                            product.Quantity = 0;
+                            shelf.Product.Quantity -= quantity;
+                            Console.WriteLine(shelf.Product.ShelfId + " " + shelf.Product.Quantity + " " + shelf.Product.ProductType.Name);
+                            ProductController.UpdateProduct(shelf.Product);
+                            Console.WriteLine("Product taken from shelf " + shelf.Id);
+                            break;
+                        }
+
+                        product.Quantity -= shelf.Product.Quantity;
+                        ProductController.DeleteProduct(shelf.Product.Id);
+                        shelf.Product = new Product();
+                        Console.WriteLine("Product taken from shelf with leftovers " + shelf.Id);
                     }
                 }
-                //save compartment
+    //save compartment
                 CompartmentController.UpdateCompartment(compartment);
             }
+    // //TODO if product quantity still not 0 remove from unstored products
+    //         if (product.Quantity <= 0) continue;
+    //         Console.WriteLine("Product not found in shelves");
+    //         foreach (var p in _nonStoredProducts.Where(p => p.ProductType?.Name == product.ProductType.Name))
+    //         {
+    //             p.Quantity -= product.Quantity;
+    //             ProductController.UpdateProduct(p);
+    //             Console.WriteLine("Product taken from unstored products");
+    //             break;
+    //         }
         }
-        
+
         _projects.Find(p => p.Id == index)!.Status = "InProgress";
+        ProjectController.UpdateProject(_projects.Find(p => p.Id == index)!);
     }
 
     private void CompleteProject(string index, bool success)
     {
         _projects.Find(p => p.Id == index)!.Status = success ? "Completed" : "Failed";
+        ProjectController.UpdateProject(_projects.Find(p => p.Id == index)!);
     }
 
     private async void CommitEdit(object project)
