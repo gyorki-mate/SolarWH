@@ -47,26 +47,26 @@
         <MudSpacer/>
         <MudGrid>
             <MudItem xs="3">
-                        <MudTable Items="_getAllShit" Dense="true" Style="bottom: 10px" hidden="@(_getAllShit.Count == 0)">
-                            <HeaderContent>
-                                <MudTh>
-                                    Product Name
-                                </MudTh>
-                                <MudTh>
-                                    Needed Quantity
-                                </MudTh>
-                            </HeaderContent>
-                            <RowTemplate Context="context">
-                                <MudTd DataLabel="name">@context.ProductType.Name</MudTd>
-                                <MudTd DataLabel="Storage">@context.Quantity</MudTd>
-                            </RowTemplate>
-                        </MudTable>
-                    </MudItem>
-                    <MudItem xs="3" >
-                        <MudFab StartIcon="@Icons.Material.Filled.ShoppingCartCheckout" Label="Order" Color="Color.Tertiary" OnClick="OrderRequired" hidden="@(_getAllShit.Count == 0)"/>
-                    </MudItem>
+                <MudTable Items="_getAllShit" Dense="true" Style="bottom: 10px" hidden="@(_getAllShit.Count == 0)">
+                    <HeaderContent>
+                        <MudTh>
+                            Product Name
+                        </MudTh>
+                        <MudTh>
+                            Needed Quantity
+                        </MudTh>
+                    </HeaderContent>
+                    <RowTemplate Context="context">
+                        <MudTd DataLabel="name">@context.ProductType.Name</MudTd>
+                        <MudTd DataLabel="Storage">@context.Quantity</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudItem>
+            <MudItem xs="3">
+                <MudFab StartIcon="@Icons.Material.Filled.ShoppingCartCheckout" Label="Order" Color="Color.Tertiary" OnClick="OrderRequired" hidden="@(_getAllShit.Count == 0)"/>
+            </MudItem>
         </MudGrid>
-        
+
 
     </MudTabPanel>
     @for (var s = 0; s < 8; s++)
@@ -155,7 +155,7 @@
             Console.WriteLine("GET MORE STUFF DUM");
         }
     }
-    
+
     private void AllWeNeed()
     {
     //go through each project and add all the products to a list, if the product is already in the list, add the quantity to the existing product
@@ -197,14 +197,12 @@
                 Quantity = req.Quantity,
                 IsStored = false,
                 ShelfId = 0
-                
             };
             if (!_nonStoredProducts.Exists(x => x.ProductType?.Id == req.ProductType.Id))
             {
-                
                 ProductController.AddProduct(product, req.ProductType.Id);
             }
-        else
+            else
             {
                 var p = _nonStoredProducts.Find(x => x.ProductType?.Id == req.ProductType.Id);
                 if (p == null) continue;
@@ -233,7 +231,7 @@
 
     private async void StoreProduct(int sid, int cid)
     {
-        var parameters = new DialogParameters { { "ShelfId", sid }};
+        var parameters = new DialogParameters { { "ShelfId", sid } };
         var res = await DialogService.ShowAsync<AddToShelf>("Add product to shelf", parameters, _smallWidth);
         var result = await res.Result;
         if (result.Canceled) return;

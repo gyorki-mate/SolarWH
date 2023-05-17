@@ -21,7 +21,8 @@
           RowEditCommit="CommitEdit"
           RowEditCancel="ResetItemToOriginalValues"
           RowEditPreview="Backup"
-          Filter="new Func<ProjectProducts, bool>(FilterFunc1)">
+          Filter="new Func<ProjectProducts, bool>(FilterFunc1)"
+          ReadOnly="_isReadOnly">
 
     <ToolBarContent>
         <MudItem xs="6">
@@ -29,10 +30,10 @@
         </MudItem>
         <MudSpacer/>
         <MudTooltip Class="align-content-lg-end" Text="Add product">
-            <MudIconButton OnClick="AddProduct" Icon="@Icons.Material.Outlined.Add" Size="Size.Medium"/>
+            <MudIconButton OnClick="AddProduct" Icon="@Icons.Material.Outlined.Add" Size="Size.Large" hidden="@_isReadOnly"/>
         </MudTooltip>
         <MudTooltip Class="align-content-lg-end" Text="Save project">
-            <MudIconButton OnClick="Save" Icon="@Icons.Material.Outlined.Save" Size="Size.Medium"/>
+            <MudIconButton OnClick="Save" Icon="@Icons.Material.Outlined.Save" Size="Size.Large" Color="Color.Warning" hidden="@_isReadOnly"/>
         </MudTooltip>
     </ToolBarContent>
     <HeaderContent>
@@ -63,7 +64,12 @@
             }
         </MudTd>
         <MudTd DataLabel="del">
-            <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(productListContext.ProductType.Name); })"/>
+            @if (_project.Status.Equals("New") || _project.Status.Equals("Draft") || _project.Status.Equals("Wait"))
+            {
+                <MudTooltip Text="Delete">
+                    <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(productListContext.ProductType.Name); })"/>
+                </MudTooltip>
+            }
         </MudTd>
     </RowTemplate>
     <RowEditingTemplate Context="productListContext">
@@ -98,6 +104,7 @@
     private string _searchString1 = "";
     private ProjectProducts _selectedItem;
     private ProjectProducts _backup = new();
+    private bool _isReadOnly;
 
     protected override async Task OnInitializedAsync()
     {
@@ -105,6 +112,12 @@
         _projects = await ProjectController.GetAllProjects();
         _productTypes = await ProductTypeController.GetAllProductTypes();
         _products = await ProductController.GetAllProducts();
+        if (_project.Status.Equals("Completed") || _project.Status.Equals("Failed") || _project.Status.Equals("Scheduled") || _project.Status.Equals("InProgress"))
+        {
+            _isReadOnly = true;
+        }
+        Console.WriteLine(_isReadOnly);
+        Console.WriteLine(_project.Status);
 
         foreach (var stock in _productTypes.Select(productType => new ProjectProducts { ProductType = productType }))
         {
