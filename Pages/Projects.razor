@@ -7,83 +7,153 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject NavigationManager NavManager
+@inject Blazored.SessionStorage.ISessionStorageService SessionStorage
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
-<MudTable Items="_projects" Dense="true"
-          CanCancelEdit="true"
-          @bind-SelectedItem="_selectedItem"
-          IsEditRowSwitchingBlocked="false"
-          CommitEditTooltip="Commit Edit"
-          CancelEditTooltip="Cancel Edit"
-          RowEditCommit="CommitEdit"
-          RowEditCancel="ResetItemToOriginalValues"
-          RowEditPreview="Backup"
-          Filter="new Func<Project, bool>(FilterFunc1)">
+@if(_role=="Expert")
+{
+    <MudTable Items="_projects" Dense="true"
+              CanCancelEdit="true"
+              @bind-SelectedItem="_selectedItem"
+              IsEditRowSwitchingBlocked="false"
+              CommitEditTooltip="Commit Edit"
+              CancelEditTooltip="Cancel Edit"
+              RowEditCommit="CommitEdit"
+              RowEditCancel="ResetItemToOriginalValues"
+              RowEditPreview="Backup"
+              Filter="new Func<Project, bool>(FilterFunc1)">
 
-    <ToolBarContent>
-        <MudItem xs="6">
-            <MudTextField @bind-Value="_searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Style="justify-content: end" MaxLength="45" Clearable/>
-        </MudItem>
-        <MudSpacer/>
-        <MudTooltip Class="align-content-lg-end" Text="Add project">
-            <MudIconButton OnClick="AddProject" Icon="@Icons.Material.Outlined.Add" Size="Size.Medium"/>
-        </MudTooltip>
-    </ToolBarContent>
-    <HeaderContent>
-        <MudTh>
-            <MudTableSortLabel SortBy="new Func<Project, object>(x => x.Name)">Project Name</MudTableSortLabel>
-        </MudTh>
-        <MudTh>
-            <MudTableSortLabel SortBy="new Func<Project, object>(x => x.Location)">Location</MudTableSortLabel>
-        </MudTh>
-        <MudTh>
-            <MudTableSortLabel SortBy="new Func<Project, object>(x => x.Status)">Project Status</MudTableSortLabel>
-        </MudTh>
-        <MudTh> Project Information</MudTh>
-        <MudTh> Draft Project</MudTh>
-        <MudTh> Delete</MudTh>
-        <MudTh> Open Project</MudTh>
-    </HeaderContent>
-    <RowTemplate Context="projectContext">
-        <MudTd DataLabel="name">@projectContext.Name</MudTd>
-        <MudTd DataLabel="location">@projectContext.Location</MudTd>
-        <MudTd DataLabel="status">@projectContext.Status</MudTd>
-        <MudTd DataLabel="info">
-            <MudIconButton Icon="@Icons.Filled.Info" Color="Color.Info" OnClick="@(() => { Information(projectContext.Id); })"/>
-        </MudTd>
-        <MudTd DataLabel="draft">
-            <MudIconButton Icon="@Icons.Filled.Edit" OnClick="@(() => { DraftProject(projectContext.Id); })"/>
-        </MudTd>
-        <MudTd DataLabel="del">
-            <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProject(projectContext.Id); })"/>
-        </MudTd>
-        <MudTd>
-            @if (projectContext.Status.Equals("Draft"))
-            {
-                <MudTooltip Text="Schedule">
-                    <MudIconButton Icon="@Icons.Material.Filled.EditAttributes" Title="Schedule" OnClick="@(() => { SetSchedule(projectContext.Id); })"/>
-                </MudTooltip>
-            }
-            @if (projectContext.Status is "Scheduled")
-            {
-                <MudTooltip Text="Start">
-                    <MudIconButton Icon="@Icons.Material.Filled.EditAttributes" OnClick="@(() => { SetInProgress(projectContext.Id); })"/>
-                </MudTooltip>
-            }
-            @if (projectContext.Status is "InProgress")
-            {
-                <MudTooltip Text="Complete">
-                    <MudIconButton Icon="@Icons.Material.Filled.Check" OnClick="@(() => { CompleteProject(projectContext.Id,true); })"/>
-                </MudTooltip>
-                <MudTooltip Text="Fail">
-                    <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="@(() => { CompleteProject(projectContext.Id,false); })"/>
-                </MudTooltip>
-            }
-        </MudTd>
-    </RowTemplate>
-</MudTable>
+        <ToolBarContent>
+            <MudItem xs="6">
+                <MudTextField @bind-Value="_searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Style="justify-content: end" MaxLength="45" Clearable/>
+            </MudItem>
+            <MudSpacer/>
+            <MudTooltip Class="align-content-lg-end" Text="Add project">
+                <MudIconButton OnClick="AddProject" Icon="@Icons.Material.Outlined.Add" Size="Size.Medium"/>
+            </MudTooltip>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Project, object>(x => x.Name)">Project Name</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Project, object>(x => x.Location)">Location</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Project, object>(x => x.Status)">Project Status</MudTableSortLabel>
+            </MudTh>
+            <MudTh> Project Information</MudTh>
+            <MudTh> Draft Project</MudTh>
+            <MudTh> Delete</MudTh>
+            <MudTh> Project Action</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="projectContext">
+            <MudTd DataLabel="name">@projectContext.Name</MudTd>
+            <MudTd DataLabel="location">@projectContext.Location</MudTd>
+            <MudTd DataLabel="status">@projectContext.Status</MudTd>
+            <MudTd DataLabel="info">
+                <MudIconButton Icon="@Icons.Filled.Info" Color="Color.Info" OnClick="@(() => { Information(projectContext.Id); })"/>
+            </MudTd>
+            <MudTd DataLabel="draft">
+                <MudIconButton Icon="@Icons.Filled.Edit" OnClick="@(() => { DraftProject(projectContext.Id); })"/>
+            </MudTd>
+            <MudTd DataLabel="del">
+                <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProject(projectContext.Id); })"/>
+            </MudTd>
+            <MudTd>
+                @if (projectContext.Status.Equals("Draft"))
+                {
+                    <MudTooltip Text="Schedule">
+                        <MudIconButton Icon="@Icons.Material.Filled.EditAttributes" Title="Schedule" OnClick="@(() => { SetSchedule(projectContext.Id); })"/>
+                    </MudTooltip>
+                }
+                @if (projectContext.Status is "Scheduled")
+                {
+                    <MudTooltip Text="Waiting for Warehouser to start the shipping process">
+                        <MudIconButton Icon="@Icons.Material.Filled.EditAttributes" Disabled="true" OnClick="@(() => { SetInProgress(projectContext.Id); })"/>
+                    </MudTooltip>
+                }
+                @if (projectContext.Status is "InProgress")
+                {
+                    <MudTooltip Text="Complete">
+                        <MudIconButton Icon="@Icons.Material.Filled.Check" OnClick="@(() => { CompleteProject(projectContext.Id, true); })"/>
+                    </MudTooltip>
+                    <MudTooltip Text="Fail">
+                        <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="@(() => { CompleteProject(projectContext.Id, false); })"/>
+                    </MudTooltip>
+                }
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+else if (_role == "Warehouser")
+{
+    <MudTable Items="_projects" Dense="true"
+              CanCancelEdit="true"
+              @bind-SelectedItem="_selectedItem"
+              IsEditRowSwitchingBlocked="false"
+              CommitEditTooltip="Commit Edit"
+              CancelEditTooltip="Cancel Edit"
+              RowEditCommit="CommitEdit"
+              RowEditCancel="ResetItemToOriginalValues"
+              RowEditPreview="Backup"
+              Filter="new Func<Project, bool>(FilterFunc1)">
+
+        <ToolBarContent>
+            <MudItem xs="6">
+                <MudTextField @bind-Value="_searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Style="justify-content: end" MaxLength="45" Clearable/>
+            </MudItem>
+            <MudSpacer/>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Project, object>(x => x.Name)">Project Name</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Project, object>(x => x.Location)">Location</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Project, object>(x => x.Status)">Project Status</MudTableSortLabel>
+            </MudTh>
+            <MudTh> Project Information</MudTh>
+            <MudTh> Project Action</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="projectContext">
+            <MudTd DataLabel="name">@projectContext.Name</MudTd>
+            <MudTd DataLabel="location">@projectContext.Location</MudTd>
+            <MudTd DataLabel="status">@projectContext.Status</MudTd>
+            <MudTd DataLabel="info">
+                <MudIconButton Icon="@Icons.Filled.Info" Color="Color.Info" OnClick="@(() => { Information(projectContext.Id); })"/>
+            </MudTd>
+            <MudTd>
+                @if (projectContext.Status.Equals("Draft"))
+                {
+                    <MudTooltip Text="Waiting for Expert to Schedule this project">
+                        <MudIconButton Icon="@Icons.Material.Filled.EditAttributes" Disabled="true" Title="Schedule" OnClick="@(() => { SetSchedule(projectContext.Id); })"/>
+                    </MudTooltip>
+                }
+                @if (projectContext.Status is "Scheduled")
+                {
+                    <MudTooltip Text="Start">
+                        <MudIconButton Icon="@Icons.Material.Filled.EditAttributes" OnClick="@(() => { SetInProgress(projectContext.Id); })"/>
+                    </MudTooltip>
+                }
+                @if (projectContext.Status is "InProgress")
+                {
+                    <MudTooltip Text="Complete">
+                        <MudIconButton Icon="@Icons.Material.Filled.Check" Disabled="true" OnClick="@(() => { CompleteProject(projectContext.Id, true); })"/>
+                    </MudTooltip>
+                    <MudTooltip Text="Fail">
+                        <MudIconButton Icon="@Icons.Material.Filled.Close" Disabled="true" OnClick="@(() => { CompleteProject(projectContext.Id, false); })"/>
+                    </MudTooltip>
+                }
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
 
 @code {
-
+    private string _role;
     List<Project> _projects = new();
     private Project _backup = new();
     private Project _selectedItem;
@@ -100,6 +170,13 @@
                 p.Status = "Completed";
             }
         }
+        
+        if (await SessionStorage.ContainKeyAsync("Role"))
+        {
+            _role = await SessionStorage.GetItemAsync<string>("Role");
+        }
+        if (!await LocalStorage.ContainKeyAsync("Role")) return;
+        _role = await LocalStorage.GetItemAsync<string>("Role");
     }
 
     private async void AddProject()
