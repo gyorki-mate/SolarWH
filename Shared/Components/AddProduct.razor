@@ -29,7 +29,7 @@
     private string ProductName { get; set; }
     private int Price { get; set; }
     private int MaxCapacity { get; set; }
-    private List<ProductType> ProductTypes = new();
+    private List<ProductType?> ProductTypes = new();
     private List<Product> Products = new();
 
     MudForm form;
@@ -65,7 +65,7 @@
                 return;
             }
 
-            ProductType productType = new()
+            ProductType? productType = new()
             {
                 Name = ProductName,
                 Price = Price,

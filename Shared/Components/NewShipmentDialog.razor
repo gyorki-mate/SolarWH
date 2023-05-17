@@ -38,7 +38,7 @@
 
     MudForm _form;
 
-    List<ProductType> _productsTypes = new();
+    List<ProductType?> _productsTypes = new();
     List<Product> _products = new();
     private IEnumerable<string> Options { get; set; } = new List<string>();
 
@@ -56,7 +56,7 @@
 
     private async void Close()
     {
-        ProductType pType = new();
+        ProductType? pType = new();
         Product.ProductType = pType;
 
         Product.Quantity = Amount;

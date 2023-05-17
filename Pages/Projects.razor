@@ -4,6 +4,7 @@
 @using SWH.Interfaces
 @using SWH.Shared.Components
 @inject IProject ProjectController
+@inject ICompartment CompartmentController
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject NavigationManager NavManager
@@ -85,6 +86,7 @@
 @code {
 
     List<Project> _projects = new();
+    List<Compartment> _compartments = new();
     private Project _backup = new();
     private Project _selectedItem;
     private string _searchString1 = "";
@@ -92,6 +94,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _compartments = await CompartmentController.GetAllCompartments();
         _projects = await ProjectController.GetAllProjects();
         foreach (var p in _projects.Where(p => p.Status == "InProgress"))
         {
@@ -158,6 +161,27 @@
 
     private void SetInProgress(string index)
     {
+        Project project = _projects.Find(p => p.Id == index)!;
+        foreach (var product in project.Products)
+        {
+            //search for product in compartments.shelves where prouct.shelfid == shelf.id and set shelf.productType to null and Product.shelfId to 0 and Quantity to 0
+            foreach (var compartment in _compartments)
+            {
+                foreach (var shelf in compartment.Shelves)
+                {
+                    if (shelf?.Product?.ProductType == product.ProductType)
+                    {
+                        shelf.Product.ProductType = null;
+                        shelf.Product.Id = "0";
+                        shelf.Product.Quantity = 0;
+                        shelf.Product.IsStored = false;
+                    }
+                }
+                //save compartment
+                CompartmentController.UpdateCompartment(compartment);
+            }
+        }
+        
         _projects.Find(p => p.Id == index)!.Status = "InProgress";
     }
 

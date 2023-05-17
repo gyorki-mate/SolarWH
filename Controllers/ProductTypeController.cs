@@ -8,11 +8,11 @@ public class ProductTypeController : IProductType
 {
     private readonly DbContext _context = new();
 
-    public async Task<List<ProductType>> GetAllProductTypes()
+    public async Task<List<ProductType?>> GetAllProductTypes()
     {
         try
         {
-            var types = _context.ProductTypeRecord.Find(FilterDefinition<ProductType>.Empty).ToListAsync();
+            Task<List<ProductType?>> types = _context.ProductTypeRecord.Find(FilterDefinition<ProductType>.Empty).ToListAsync();
             return await types;
         }
         catch (Exception e)
@@ -36,7 +36,7 @@ public class ProductTypeController : IProductType
         }
     }
 
-    public async void AddProductType(ProductType type)
+    public async void AddProductType(ProductType? type)
     {
         try
         {
@@ -49,7 +49,7 @@ public class ProductTypeController : IProductType
         }
     }
 
-    public async void UpdateProductType(ProductType type)
+    public async void UpdateProductType(ProductType? type)
     {
         try
         {

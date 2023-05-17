@@ -88,7 +88,7 @@
     [Parameter]
     public string ProjectIndex { get; set; }
 
-    private List<ProductType> _productTypes = new();
+    private List<ProductType?> _productTypes = new();
     List<Product> _products = new();
     private readonly List<ProjectProducts> _storage = new();
     private readonly List<ProjectProducts> _filteredStorage = new();

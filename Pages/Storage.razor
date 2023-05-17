@@ -107,7 +107,7 @@
     readonly List<ProjectProducts> _shitFromProjects = new();
     readonly List<ProjectProducts> _allShitWeHave = new();
     readonly List<ProjectProducts> _getAllShit = new();
-    private List<ProductType> _productTypes = new();
+    private List<ProductType?> _productTypes = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -171,7 +171,8 @@
 
     private async void StoreProduct(int sid, int cid)
     {
-        var res = await DialogService.ShowAsync<AddToShelf>("Add product to shelf", _smallWidth);
+        var parameters = new DialogParameters { { "ShelfId", sid } };
+        var res = await DialogService.ShowAsync<AddToShelf>("Add product to shelf", parameters, _smallWidth);
         var result = await res.Result;
         if (result.Canceled) return;
 
