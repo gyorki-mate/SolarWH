@@ -1,6 +1,7 @@
 ﻿@using Models
 @inject IDialogService DialogService
 @inject Interfaces.IProduct ProductController;
+@inject ISnackbar Snackbar
 
 <MudDialog>
     <DialogContent>
@@ -50,6 +51,8 @@
     private string Value { get; set; } = null!;
     private int MaxValue { get; set; } = 0;
 
+    private bool overlimit;
+    
     MudForm _form;
 
     protected override async Task OnInitializedAsync()
@@ -84,6 +87,14 @@
 
         var product = _products.Find(x => x.ProductType.Name == Value);
 
+        if (Amount > product.ProductType.MaxCapacity)
+        {
+            overlimit = true;
+            Amount = product.ProductType.MaxCapacity;
+        }
+        else 
+            overlimit = false;
+        
         var newProduct = new Product
         {
             IsStored = true,
@@ -93,7 +104,13 @@
 
         try
         {
-            DialogParameters parameters = new() { { "Content", "Are you sure you want to add " + Amount + " " + product.ProductType.Name + " to the shelf?" } };
+            DialogParameters parameters;
+            if (overlimit)
+            {
+                parameters = new() { { "Content", "The shelf can only store " + Amount + " " + product.ProductType.Name + ", do you want to add that many?"} };
+            }
+            else
+                parameters = new() { { "Content", "Are you sure you want to add " + Amount + " " + product.ProductType.Name + " to the shelf?" } };
             var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
             if (dialogResult.Canceled) return;

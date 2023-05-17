@@ -47,26 +47,26 @@
         <MudSpacer/>
         <MudGrid>
             <MudItem xs="3">
-                        <MudTable Items="_getAllShit" Dense="true" Style="bottom: 10px" hidden="@(_getAllShit.Count == 0)">
-                            <HeaderContent>
-                                <MudTh>
-                                    Product Name
-                                </MudTh>
-                                <MudTh>
-                                    Needed Quantity
-                                </MudTh>
-                            </HeaderContent>
-                            <RowTemplate Context="context">
-                                <MudTd DataLabel="name">@context.ProductType.Name</MudTd>
-                                <MudTd DataLabel="Storage">@context.Quantity</MudTd>
-                            </RowTemplate>
-                        </MudTable>
-                    </MudItem>
-                    <MudItem xs="3" >
-                        <MudFab StartIcon="@Icons.Material.Filled.ShoppingCartCheckout" Label="Order" Color="Color.Tertiary" OnClick="OrderRequired" hidden="@(_getAllShit.Count == 0)"/>
-                    </MudItem>
+                <MudTable Items="_getAllShit" Dense="true" Style="bottom: 10px" hidden="@(_getAllShit.Count == 0)">
+                    <HeaderContent>
+                        <MudTh>
+                            Product Name
+                        </MudTh>
+                        <MudTh>
+                            Needed Quantity
+                        </MudTh>
+                    </HeaderContent>
+                    <RowTemplate Context="context">
+                        <MudTd DataLabel="name">@context.ProductType.Name</MudTd>
+                        <MudTd DataLabel="Storage">@context.Quantity</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudItem>
+            <MudItem xs="3">
+                <MudFab StartIcon="@Icons.Material.Filled.ShoppingCartCheckout" Label="Order" Color="Color.Tertiary" OnClick="OrderRequired" hidden="@(_getAllShit.Count == 0)"/>
+            </MudItem>
         </MudGrid>
-        
+
 
     </MudTabPanel>
     @for (var s = 0; s < 8; s++)
@@ -97,8 +97,10 @@
 
                             <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">
                                 <MudText>@containerText</MudText>
-
-                                @if (_compartments.Find(x => x.CompartmentId == s2 + 1)?.Shelves?.Find(x => x != null && x.ShelfId == containerId)?.Product?.Id != null)
+                                var s1 = s2;
+                                var c1 = c2;
+                                var r1 = r2;
+                                @if (_compartments.Find(x => x.CompartmentId == s2 + 1)?.Shelves?.Find(x => x.ShelfId == containerId)?.Product.Id != null)
                                 {
                                     var product = _compartments.Find(x => x.CompartmentId == (s2 + 1))?.Shelves?.Find(x => x.ShelfId == containerId).Product;
                                     var productText = product.ProductType.Name + " (" + product.Quantity + ")";
@@ -106,11 +108,9 @@
                                 }
                                 else
                                 {
-                                    var s1 = s2;
-                                    var c1 = c2;
-                                    var r1 = r2;
                                     <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Outlined" Color="Color.Success" Size="Size.Small" Class="ml-3" OnClick="@(() => { StoreProduct(c1 + 1 + r1 * 4 + 16 * (_activeTabIndex - 1), s1 + 1); })"/>
                                 }
+
                             </MudPaper>
                         </MudItem>
                     }
@@ -148,7 +148,7 @@
             Console.WriteLine("GET MORE STUFF DUM");
         }
     }
-    
+
     private void AllWeNeed()
     {
     //go through each project and add all the products to a list, if the product is already in the list, add the quantity to the existing product
@@ -190,14 +190,12 @@
                 Quantity = req.Quantity,
                 IsStored = false,
                 ShelfId = 0
-                
             };
             if (!_nonStoredProducts.Exists(x => x.ProductType?.Id == req.ProductType.Id))
             {
-                
                 ProductController.AddProduct(product, req.ProductType.Id);
             }
-        else
+            else
             {
                 var p = _nonStoredProducts.Find(x => x.ProductType?.Id == req.ProductType.Id);
                 if (p == null) continue;
