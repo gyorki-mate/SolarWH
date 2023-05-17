@@ -8,69 +8,119 @@
 @inject IProduct ProductController
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject Blazored.SessionStorage.ISessionStorageService SessionStorage
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
-<MudTable Items="_storage"
-          @ref="_table"
-          Dense="true"
-          CanCancelEdit="true"
-          @bind-SelectedItem="_selectedItem"
-          IsEditRowSwitchingBlocked="false"
-          CommitEditTooltip="Commit Edit"
-          CancelEditTooltip="Cancel Edit"
-          RowEditCommit="CommitEdit"
-          RowEditCancel="ResetItemToOriginalValues"
-          RowEditPreview="Backup"
-          Filter="new Func<Stock, bool>(FilterFunc1)">
-
-    <ToolBarContent>
-        <MudItem xs="6">
-            <MudTextField @bind-Value="_searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" MaxLength="45" Clearable/>
-        </MudItem>
-        <MudSpacer/>
-        <MudTooltip Class="align-content-lg-end" Text="Add product">
-            <MudIconButton OnClick="AddProduct" Icon="@Icons.Material.Outlined.Add" Size="Size.Large"/>
-        </MudTooltip>
-    </ToolBarContent>
-    <HeaderContent>
-        <MudTh>
-            <MudTableSortLabel SortBy="new Func<Stock, object>(x => x.ProductType.Name)">Product Name</MudTableSortLabel>
-        </MudTh>
-        <MudTh>
-            <MudTableSortLabel SortBy="new Func<Stock, object>(x => x.ProductType.Price)">Price</MudTableSortLabel>
-        </MudTh>
-        <MudTh>
-            <MudTableSortLabel SortBy="new Func<Stock, object>(x => x.ProductType.MaxCapacity)">Max Quantity</MudTableSortLabel>
-        </MudTh>
-        <MudTh>
-            <MudTableSortLabel SortBy="new Func<Stock, object>(x => x.Quantity)">Current Storage</MudTableSortLabel>
-        </MudTh>
-        <MudTh> Delete</MudTh>
-    </HeaderContent>
-    <RowTemplate Context="context">
-        <MudTd DataLabel="name">@context.ProductType.Name</MudTd>
-        <MudTd DataLabel="price">
-            @context.ProductType.Price HUF
-        </MudTd>
-        <MudTd DataLabel="maxQuantity">@context.ProductType.MaxCapacity</MudTd>
-        <MudTd DataLabel="Storage">@context.Quantity</MudTd>
-        <MudTd DataLabel="del">
-            <MudTooltip Text="Delete">
-                <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(context.ProductType.Id); })"/>
+@if (_role is "Warehouse Manager" or "Admin")
+{
+    <MudTable Items="_storage"
+              @ref="_table"
+              Dense="true"
+              CanCancelEdit="true"
+              @bind-SelectedItem="_selectedItem"
+              IsEditRowSwitchingBlocked="false"
+              CommitEditTooltip="Commit Edit"
+              CancelEditTooltip="Cancel Edit"
+              RowEditCommit="CommitEdit"
+              RowEditCancel="ResetItemToOriginalValues"
+              RowEditPreview="Backup"
+              Filter="new Func<Stock, bool>(FilterFunc1)">
+        <ToolBarContent>
+            <MudItem xs="6">
+                <MudTextField @bind-Value="_searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" MaxLength="45" Clearable/>
+            </MudItem>
+            <MudSpacer/>
+            <MudTooltip Class="align-content-lg-end" Text="Add product">
+                <MudIconButton OnClick="AddProduct" Icon="@Icons.Material.Outlined.Add" Size="Size.Large"/>
             </MudTooltip>
-        </MudTd>
-    </RowTemplate>
-    <RowEditingTemplate Context="productTypeContext">
-        <MudTd DataLabel="name">@productTypeContext.ProductType.Name</MudTd>
-        <MudTd DataLabel="price">
-            <MudNumericField @bind-Value="_selectedItem.ProductType.Price" Required MaxLength="5" Min="0" Max="10000" Immediate/>
-        </MudTd>
-        <MudTd DataLabel="currentStock">@productTypeContext.Quantity</MudTd>
-        <MudTd DataLabel="maxQuantity">@productTypeContext.ProductType.MaxCapacity</MudTd>
-    </RowEditingTemplate>
-</MudTable>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Stock, object>(x => x.ProductType.Name)">Product Name</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Stock, object>(x => x.ProductType.Price)">Price</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Stock, object>(x => x.ProductType.MaxCapacity)">Max Quantity</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Stock, object>(x => x.Quantity)">Current Storage</MudTableSortLabel>
+            </MudTh>
+            <MudTh> Delete</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="context">
+            <MudTd DataLabel="name">@context.ProductType.Name</MudTd>
+            <MudTd DataLabel="price">
+                @context.ProductType.Price HUF
+            </MudTd>
+            <MudTd DataLabel="maxQuantity">@context.ProductType.MaxCapacity</MudTd>
+            <MudTd DataLabel="Storage">@context.Quantity</MudTd>
+            <MudTd DataLabel="del">
+                <MudTooltip Text="Delete">
+                    <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(context.ProductType.Id); })"/>
+                </MudTooltip>
+            </MudTd>
+        </RowTemplate>
+        <RowEditingTemplate Context="productTypeContext">
+            <MudTd DataLabel="name">@productTypeContext.ProductType.Name</MudTd>
+            <MudTd DataLabel="price">
+                <MudNumericField @bind-Value="_selectedItem.ProductType.Price" Required MaxLength="5" Min="0" Max="10000" Immediate/>
+            </MudTd>
+            <MudTd DataLabel="currentStock">@productTypeContext.Quantity</MudTd>
+            <MudTd DataLabel="maxQuantity">@productTypeContext.ProductType.MaxCapacity</MudTd>
+        </RowEditingTemplate>
+    </MudTable>
+}
+else
+{
+    <MudTable Items="_storage"
+              @ref="_table"
+              Dense="true"
+              CanCancelEdit="true"
+              @bind-SelectedItem="_selectedItem"
+              IsEditRowSwitchingBlocked="false"
+              CommitEditTooltip="Commit Edit"
+              CancelEditTooltip="Cancel Edit"
+              RowEditCommit="CommitEdit"
+              RowEditCancel="ResetItemToOriginalValues"
+              RowEditPreview="Backup"
+              Filter="new Func<Stock, bool>(FilterFunc1)">
+
+        <ToolBarContent>
+            <MudItem xs="6">
+                <MudTextField @bind-Value="_searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" MaxLength="45" Clearable/>
+            </MudItem>
+            <MudSpacer/>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Stock, object>(x => x.ProductType.Name)">Product Name</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Stock, object>(x => x.ProductType.Price)">Price</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Stock, object>(x => x.ProductType.MaxCapacity)">Max Quantity</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<Stock, object>(x => x.Quantity)">Current Storage</MudTableSortLabel>
+            </MudTh>
+        </HeaderContent>
+        <RowTemplate Context="context">
+            <MudTd DataLabel="name">@context.ProductType.Name</MudTd>
+            <MudTd DataLabel="price">
+                @context.ProductType.Price HUF
+            </MudTd>
+            <MudTd DataLabel="maxQuantity">@context.ProductType.MaxCapacity</MudTd>
+            <MudTd DataLabel="Storage">@context.Quantity</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
 
 @code {
-
+    private string _role;
     private MudTable<Stock> _table;
     List<ProductType?> _productTypes = new();
     List<Product> _products = new();
@@ -95,6 +145,13 @@
 
             _storage.Add(stock);
         }
+
+        if (await SessionStorage.ContainKeyAsync("Role"))
+        {
+            _role = await SessionStorage.GetItemAsync<string>("Role");
+        }
+        if (!await LocalStorage.ContainKeyAsync("Role")) return;
+        _role = await LocalStorage.GetItemAsync<string>("Role");
     }
 
 

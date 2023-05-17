@@ -1,4 +1,7 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@inject Blazored.SessionStorage.ISessionStorageService SessionStorage
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">SolarWarehouse</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
@@ -7,35 +10,88 @@
     </div>
 </div>
 
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="products" Match="NavLinkMatch.All">
-                <span class="oi oi-list" aria-hidden="true"></span> Products
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="projects" Match="NavLinkMatch.All">
-                <span class="oi oi-list" aria-hidden="true"></span> Projects
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="storage" Match="NavLinkMatch.All">
-                <span class="oi oi-list" aria-hidden="true"></span> Storage
-            </NavLink>
-        </div>
-    </nav>
-</div>
+@if(isAuthenticated)
+{
+    <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+        <nav class="flex-column">
+            @if(_role=="Expert"||_role=="Warehouse Manager"||_role=="Admin")
+            {
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="products" Match="NavLinkMatch.All">
+                        <span class="oi oi-list" aria-hidden="true"></span> Products
+                    </NavLink>
+                </div>
+            }
+            @if(_role=="Expert"||_role=="Warehouser"||_role=="Admin")
+            {
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="projects" Match="NavLinkMatch.All">
+                        <span class="oi oi-list" aria-hidden="true"></span> Projects
+                    </NavLink>
+                </div>
+            }
+            @if(_role=="Warehouser"||_role=="Warehouse Manager"||_role=="Admin")
+            {
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="storage" Match="NavLinkMatch.All">
+                        <span class="oi oi-list" aria-hidden="true"></span> Storage
+                    </NavLink>
+                </div>
+            }
+        </nav>
+    </div>
+}
+else
+{
+    <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+        <nav class="flex-column">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                    <span class="oi oi-home" aria-hidden="true"></span> Home
+                </NavLink>
+            </div>
+        </nav>
+    </div>
+}
 
 @code {
+    private bool isAuthenticated { get; set; }
+    private string _role;
     private bool _collapseNavMenu = true;
 
     private string? NavMenuCssClass => _collapseNavMenu ? "collapse" : null;
+
+    protected override async void OnInitialized()
+    {
+        if (await SessionStorage.ContainKeyAsync("Role"))
+        {
+            _role = await SessionStorage.GetItemAsync<string>("Role");
+        }
+        if (!await LocalStorage.ContainKeyAsync("Role")) return;
+        _role = await LocalStorage.GetItemAsync<string>("Role");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (await LocalStorage.ContainKeyAsync("isAuthenticated"))
+        {
+            var temp = await LocalStorage.GetItemAsync<bool>("isAuthenticated");
+            if (temp != isAuthenticated)
+            {
+                isAuthenticated = temp;
+                StateHasChanged();
+            }
+        }
+        if (await SessionStorage.ContainKeyAsync("isAuthenticated"))
+        {
+            var temp = await SessionStorage.GetItemAsync<bool>("isAuthenticated");
+            if (temp != isAuthenticated)
+            {
+                isAuthenticated = temp;
+                StateHasChanged();
+            }
+        }
+    }
 
     private void ToggleNavMenu()
     {
