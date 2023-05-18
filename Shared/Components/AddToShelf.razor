@@ -1,7 +1,6 @@
 ﻿@using Models
 @inject IDialogService DialogService
 @inject Interfaces.IProduct ProductController;
-@inject ISnackbar Snackbar
 
 <MudDialog>
     <DialogContent>
@@ -37,24 +36,17 @@
 </MudDialog>
 
 @code {
-
     [CascadingParameter]
     MudDialogInstance MudDialog { get; set; }
-
     [Parameter]
     public int ShelfId { get; set; }
-
     private bool _success;
     List<Product> _products = new();
     private IEnumerable<string> Options { get; set; } = new List<string>();
     private int Amount { get; set; }
     private string Value { get; set; } = null!;
     private int MaxValue { get; set; } = 0;
-
-    private bool overlimit;
-    
     MudForm _form;
-
     protected override async Task OnInitializedAsync()
     {
         _products = await ProductController.GetAllNonStoredProducts();
@@ -75,16 +67,13 @@
                 Amount = productV.Quantity;
             }
         });
-
         var product = _products.Find(x => x.ProductType.Name == Value);
-
         var newProduct = new Product
         {
             IsStored = true,
             Quantity = Amount,
             ShelfId = ShelfId
         };
-
         try
         {
             DialogParameters parameters = new() { { "Content", "Are you sure you want to add " + Amount + " " + product.ProductType.Name + " to the shelf?" } };
@@ -109,5 +98,4 @@
         }
         MudDialog.Close(DialogResult.Ok(newProduct));
     }
-
 }

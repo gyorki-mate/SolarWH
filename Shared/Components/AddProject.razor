@@ -21,10 +21,8 @@
 </MudDialog>
 
 @code {
-
     [CascadingParameter]
     MudDialogInstance MudDialog { get; set; }
-
     private bool _success;
     private Project Project { get; set; } = new();
     private List<ProjectProducts> Products { get; set; } = new();
@@ -44,5 +42,4 @@
             throw;
         }
     }
-
 }

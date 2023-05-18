@@ -4,7 +4,6 @@ using SWH.Models;
 
 namespace SWH.Controllers;
 
-
 public class ProjectController : IProject
 {
     private readonly DbContext _context = new();

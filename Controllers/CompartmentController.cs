@@ -15,7 +15,6 @@ public class CompartmentController : ICompartment
             var compartments = await _context.CompartmentRecord.Find(FilterDefinition<Compartment>.Empty).ToListAsync();
             //sort the shelves by row and column
             // shelves.Sort((x, y) => x.row.CompareTo(y.row) == 0 ? x.column.CompareTo(y.column) : x.row.CompareTo(y.row));
-            
             return compartments;
         }
         catch (Exception e)
@@ -61,7 +60,6 @@ public class CompartmentController : ICompartment
         // {
         //     return await Task.FromResult("Quantity is more than the max quantity");
         // }
-        
         try
         {
             await _context.CompartmentRecord.ReplaceOneAsync(x => x.Id == compartment.Id, compartment);
@@ -71,7 +69,6 @@ public class CompartmentController : ICompartment
             Console.WriteLine(e);
             throw;
         }
-
         return "";
     }
 

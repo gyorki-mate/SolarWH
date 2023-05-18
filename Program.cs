@@ -1,9 +1,6 @@
 using Blazored.LocalStorage;
 using Blazored.SessionStorage;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using ElectronNET.API;
-using SWH.Models;
 using ElectronNET.API.Entities;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using MudBlazor.Services;
@@ -30,7 +27,6 @@ builder.Services.AddScoped<IProject, ProjectController>();
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddBlazoredSessionStorage();
 
-
 StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
 var app = builder.Build();
 
@@ -54,7 +50,6 @@ app.MapFallbackToPage("/_Host");
 CreateElectronWindow();
 
 app.Run();
-
 
 async void CreateElectronWindow()
 {

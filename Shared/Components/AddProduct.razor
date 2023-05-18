@@ -19,21 +19,16 @@
     </DialogActions>
 </MudDialog>
 
-
 @code {
-
     [CascadingParameter]
     MudDialogInstance MudDialog { get; set; }
-
     private bool _success;
     private string ProductName { get; set; }
     private int Price { get; set; }
     private int MaxCapacity { get; set; }
     private List<ProductType?> ProductTypes = new();
     private List<Product> Products = new();
-
     MudForm form;
-
     protected override async Task OnInitializedAsync()
     {
         ProductTypes = await ProductTypeController.GetAllProductTypes();
@@ -64,14 +59,12 @@
                 MudDialog.Close(DialogResult.Ok("Product type already exists"));
                 return;
             }
-
             ProductType? productType = new()
             {
                 Name = ProductName,
                 Price = Price,
                 MaxCapacity = MaxCapacity
             };
-
             ProductTypeController.AddProductType(productType);
             if (!Products.Exists(x => ProductName == x.ProductType.Name))
             {
@@ -90,5 +83,4 @@
             throw;
         }
     }
-
 }

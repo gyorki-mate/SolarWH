@@ -1,7 +1,4 @@
 ﻿@using Models
-@using MongoDB.Bson
-@using MongoDB.Bson.Serialization.Attributes
-@using MudBlazor.Extensions
 @inject IDialogService DialogService
 @inject Interfaces.IProductType ProductTypeController;
 @inject Interfaces.IProduct ProductController;
@@ -32,21 +29,16 @@
 </MudDialog>
 
 @code {
-
     [CascadingParameter]
     MudDialogInstance MudDialog { get; set; }
-
     MudForm _form;
-
     List<ProductType?> _productsTypes = new();
     List<Product> _products = new();
     private IEnumerable<string> Options { get; set; } = new List<string>();
-
     private Product Product { get; set; } = new();
     private string Value { get; set; }
     private int Amount { get; set; }
     private bool _success;
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -58,11 +50,9 @@
     {
         ProductType? pType = new();
         Product.ProductType = pType;
-
         Product.Quantity = Amount;
         Product.IsStored = false;
         Product.ProductType.Id = Value;
-    
         try
         {
             var name = _productsTypes.Find(x => x?.Id == Value)?.Name;
@@ -75,7 +65,6 @@
         {
     //ignored
         }
-        
         if (!_products.Exists(x => x.ProductType.Id == Product.ProductType.Id))
         {
             ProductController.AddProduct(Product, Value);
@@ -91,5 +80,4 @@
         }
         MudDialog.Close(DialogResult.Ok(true));
     }
-
 }

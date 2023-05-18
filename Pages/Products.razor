@@ -58,7 +58,7 @@
             <MudTd DataLabel="Storage">@context.Quantity</MudTd>
             <MudTd DataLabel="del">
                 <MudTooltip Text="Delete">
-                    <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(context.ProductType.Id); })"/>
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(context.ProductType.Id); })"/>
                 </MudTooltip>
             </MudTd>
         </RowTemplate>
@@ -86,7 +86,6 @@ else
               RowEditCancel="ResetItemToOriginalValues"
               RowEditPreview="Backup"
               Filter="new Func<Stock, bool>(FilterFunc1)">
-
         <ToolBarContent>
             <MudItem xs="6">
                 <MudTextField @bind-Value="_searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" MaxLength="45" Clearable/>
@@ -118,7 +117,6 @@ else
     </MudTable>
 }
 
-
 @code {
     private string _role;
     private MudTable<Stock> _table;
@@ -134,7 +132,6 @@ else
     {
         _productTypes = await ProductTypeController.GetAllProductTypes();
         _products = await ProductController.GetAllProducts();
-
     //for each item in storage have the product type and for every product that has the same product type add the quantity to the stock
         foreach (var stock in _productTypes.Select(productType => new Stock { ProductType = productType }))
         {
@@ -142,10 +139,8 @@ else
             {
                 stock.Quantity += product.Quantity;
             }
-
             _storage.Add(stock);
         }
-
         if (await SessionStorage.ContainKeyAsync("Role"))
         {
             _role = await SessionStorage.GetItemAsync<string>("Role");
@@ -153,21 +148,18 @@ else
         if (!await LocalStorage.ContainKeyAsync("Role")) return;
         _role = await LocalStorage.GetItemAsync<string>("Role");
     }
-
-
+    
     private async void AddProduct()
     {
         var res = await DialogService.ShowAsync<AddProduct>("Add new Product type", _smallWidth);
         var result = await res.Result;
     //DO NOT WRITE CODE ABOVE THIS LINE OR THE APP WILL CRASH AS I DID NOT CARE TO HANDLE THE NULL EXCEPTION
         if (result.Canceled) return;
-
         if (result.Data.GetType() != typeof(ProductType))
         {
             Snackbar.Add(result.Data.ToString(), Severity.Error);
             return;
         }
-
         _productTypes = await ProductTypeController.GetAllProductTypes();
         _products = await ProductController.GetAllProducts();
         _storage.Add(new Stock { ProductType = result.Data as ProductType });
@@ -239,9 +231,8 @@ else
 
     private bool FilterFunc1(Stock stock) => FilterFunc(stock, _searchString1);
 
-    private bool FilterFunc(Stock stock, string searchString)
+    private static bool FilterFunc(Stock stock, string searchString)
     {
         return string.IsNullOrWhiteSpace(searchString) || stock.ProductType.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
     }
-
 }

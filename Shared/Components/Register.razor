@@ -1,5 +1,4 @@
 @using System.Text
-@using Controllers
 @using Models
 @inject IDialogService DialogService
 @inject Interfaces.IUser userController;
@@ -64,7 +63,7 @@
         
     }
     
-     private static string CreateSalt(int size=30)
+    private static string CreateSalt(int size=30)
     {
         var rng = new System.Security.Cryptography.RNGCryptoServiceProvider();
         var buff = new byte[size];
@@ -86,7 +85,6 @@
         System.Security.Cryptography.SHA256Managed sha256hashstring =
             new System.Security.Cryptography.SHA256Managed();
         var hash = sha256hashstring.ComputeHash(bytes);
-
         return ByteArrayToHexString(hash);
     }
     
@@ -104,7 +102,6 @@
         }
         try
         {
-          
             var checkUser = userController.GetUser(_username);
             if(checkUser is not null )
             {
@@ -112,7 +109,7 @@
                 return;
             }
         }
-       catch(Exception e)
+        catch(Exception e)
         {
             Console.WriteLine(e.Message);
             return;

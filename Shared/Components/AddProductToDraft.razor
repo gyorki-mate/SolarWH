@@ -2,7 +2,6 @@
 @using SWH.Interfaces
 @using SWH.Shared.enums
 @inject IDialogService DialogService
-@inject IProject ProjectController;
 @inject IProductType ProductTypeController;
 
 <MudDialog>
@@ -30,19 +29,14 @@
 @code {
     [CascadingParameter]
     MudDialogInstance MudDialog { get; set; }
-    
     [Parameter]
-    public List<ProjectProducts> productsList { get; set; }
-
+    public List<ProjectProducts> productsList { get; set; } 
     private List<string> containsList { get; set; } = new ();
-
     private List<ProductType?> _products = new();
     private bool _success;
     private ProductType _product;
     private int _quantity;
-
     MudForm form;
-    
     protected override async Task OnInitializedAsync()
     {
         _products = await ProductTypeController.GetAllProductTypes();
@@ -65,7 +59,6 @@
         {
     //Ignored
         }
-        
     }
     
     private void addProduct()
@@ -77,7 +70,6 @@
                 ProductType = _product,
                 Quantity = _quantity
             };
-
             MudDialog.Close(newProduct);
         }
         catch (Exception e)

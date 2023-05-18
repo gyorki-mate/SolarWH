@@ -29,7 +29,6 @@
 @code {
     [CascadingParameter]
     MudDialogInstance MudDialog { get; set; }
-
     private bool _success;
     private bool IsAuthenticated { get; set; }
     private string UserName { get; set; } = "";
@@ -43,7 +42,6 @@
             Snackbar.Add("Empty username or password");
             return;
         }
-
         User? user = null;
         try
         {
@@ -63,7 +61,6 @@
             return;
         }
         var saltedPass = GenerateSHA256Hash(Password, user.Salt);
-      
         if(!string.Equals(user.Password, saltedPass, StringComparison.CurrentCultureIgnoreCase))
         {
             Snackbar.Add("Invalid username or password");
@@ -103,7 +100,6 @@
         System.Security.Cryptography.SHA256Managed sha256Hashstring =
             new System.Security.Cryptography.SHA256Managed();
         var hash = sha256Hashstring.ComputeHash(bytes);
-
         return ByteArrayToHexString(hash);
     }
 }

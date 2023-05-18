@@ -33,11 +33,9 @@ public class UserController : IUser
             Console.WriteLine(e);
             throw;
         }
-
         return null;
     }
-
-    //get user by username
+    
     public User GetUser(string userName)
     {
         try
@@ -57,7 +55,6 @@ public class UserController : IUser
         try
         {
             await _context.UserRecord.ReplaceOneAsync(x => x.Id == user.Id, user);
-
         }
         catch (Exception e)
         {

@@ -23,7 +23,6 @@
           RowEditPreview="Backup"
           Filter="new Func<ProjectProducts, bool>(FilterFunc1)"
           ReadOnly="_isReadOnly">
-
     <ToolBarContent>
         <MudItem xs="6">
             <MudTextField @bind-Value="_searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" MaxLength="45" Clearable/>
@@ -49,7 +48,7 @@
         <MudTh>
             <MudTableSortLabel SortBy="new Func<Stock, object>(x => x.Quantity)">Current Storage</MudTableSortLabel>
         </MudTh>
-        <MudTh> Delete</MudTh>
+        <MudTh>Delete</MudTh>
     </HeaderContent>
     <RowTemplate Context="productListContext">
         <MudTd DataLabel="name">@productListContext.ProductType.Name</MudTd>
@@ -67,7 +66,7 @@
             @if (_project.Status.Equals("New") || _project.Status.Equals("Draft") || _project.Status.Equals("Wait"))
             {
                 <MudTooltip Text="Delete">
-                    <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(productListContext.ProductType.Name); })"/>
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(productListContext.ProductType.Name); })"/>
                 </MudTooltip>
             }
         </MudTd>
@@ -93,13 +92,11 @@
 
     [Parameter]
     public string ProjectIndex { get; set; }
-
     private List<ProductType?> _productTypes = new();
     List<Product> _products = new();
     private readonly List<ProjectProducts> _storage = new();
     private readonly List<ProjectProducts> _filteredStorage = new();
     private List<Project> _projects = new();
-
     private Project _project = new();
     private string _searchString1 = "";
     private ProjectProducts _selectedItem;
@@ -118,20 +115,17 @@
         }
         Console.WriteLine(_isReadOnly);
         Console.WriteLine(_project.Status);
-
         foreach (var stock in _productTypes.Select(productType => new ProjectProducts { ProductType = productType }))
         {
             foreach (var product in _products.Where(product => product.ProductType.Name == stock.ProductType.Name))
             {
                 stock.Quantity += product.Quantity;
             }
-
             var newStock = new ProjectProducts
             {
                 ProductType = stock.ProductType,
                 Quantity = stock.Quantity
             };
-
             _storage.Add(stock);
             _filteredStorage.Add(newStock);
         }
@@ -166,10 +160,8 @@
             }
             _project.EstimatedDate = DateOnly.FromDateTime(DateTime.Now + TimeSpan.FromDays(14));
             var draftedProject = _project;
-
             draftedProject.UpdatedAt = DateOnly.FromDateTime(DateTime.Now);
             draftedProject.CreatedAt = _project.CreatedAt;
-
             DialogParameters parameters = new() { { "Content", "Are you sure you want to draft the project?" } };
             var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
@@ -191,7 +183,6 @@
         var result = await res.Result;
         if (result.Data is null) return;
         _project.Products.Add(result.Data as ProjectProducts);
-
         _project.Cost = 0;
         foreach (var product in _project.Products)
         {
@@ -209,8 +200,7 @@
             var result = await DialogService.ShowAsync<ConfirmDialog>("Warning!", parameters);
             var dialogResult = await result.Result;
             if (dialogResult.Canceled) return;
-
-    //await this function to  wait for the foreach to finish
+    //await this function to wait for the foreach to finish
             await Task.Run(() =>
             {
                 foreach (var product in _project.Products.Where(product => product.ProductType.Name == name))
@@ -221,7 +211,6 @@
                     break;
                 }
             });
-
             StateHasChanged();
         }
         catch (Exception e)
@@ -249,7 +238,6 @@
                 {
                     prod.Quantity = _selectedItem.Quantity;
                 }
-
                 _project.Cost = 0;
                 foreach (var prod in _project.Products)
                 {
@@ -283,7 +271,7 @@
 
     private bool FilterFunc1(ProjectProducts product) => FilterFunc(product, _searchString1);
 
-    private bool FilterFunc(ProjectProducts product, string searchString)
+    private static bool FilterFunc(ProjectProducts product, string searchString)
     {
         return string.IsNullOrWhiteSpace(searchString) || product.ProductType.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
     }

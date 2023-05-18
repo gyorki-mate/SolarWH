@@ -8,15 +8,13 @@
 @inject Interfaces.IProject ProjectController;
 @inject Interfaces.IProductType ProductTypeController;
 
-
 @page "/storage"
 
 <MudTabs Elevation="4" Rounded="true" Color="@Color.Dark" Class="mt-3" @bind-ActivePanelIndex="_activeTabIndex">
-    <MudTabPanel Text="Unstored Items">
+    <MudTabPanel Text="Non-stored Items">
         <MudTable Items="_nonStoredProducts"
                   Dense="true"
                   Filter="new Func<Product, bool>(FilterFunc1)">
-
             <ToolBarContent>
                 <MudItem xs="6">
                     <MudTextField @bind-Value="_searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" MaxLength="45" Clearable/>
@@ -33,30 +31,25 @@
                 <MudTh>
                     <MudTableSortLabel SortBy="new Func<Product, object>(x => x.Quantity)">Currently unstored </MudTableSortLabel>
                 </MudTh>
-                <MudTh> Delete</MudTh>
+                <MudTh>Delete</MudTh>
             </HeaderContent>
             <RowTemplate Context="context">
                 <MudTd DataLabel="name">@context.ProductType.Name</MudTd>
                 <MudTd DataLabel="Storage">@context.Quantity</MudTd>
                 <MudTd DataLabel="del">
                     <MudTooltip Text="Delete">
-                        <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(context.Id); })"/>
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProduct(context.Id); })"/>
                     </MudTooltip>
                 </MudTd>
             </RowTemplate>
         </MudTable>
-
         <MudSpacer/>
         <MudGrid>
             <MudItem xs="3">
                 <MudTable Items="_getAllShit" Dense="true" Style="bottom: 10px" hidden="@(_getAllShit.Count == 0)">
                     <HeaderContent>
-                        <MudTh>
-                            Product Name
-                        </MudTh>
-                        <MudTh>
-                            Needed Quantity
-                        </MudTh>
+                        <MudTh>Product Name</MudTh>
+                        <MudTh>Needed Quantity</MudTh>
                     </HeaderContent>
                     <RowTemplate Context="context">
                         <MudTd DataLabel="name">@context.ProductType.Name</MudTd>
@@ -68,8 +61,6 @@
                 <MudFab StartIcon="@Icons.Material.Filled.ShoppingCartCheckout" Label="Order" Color="Color.Tertiary" OnClick="OrderRequired" hidden="@(_getAllShit.Count == 0)"/>
             </MudItem>
         </MudGrid>
-
-
     </MudTabPanel>
     @for (var s = 0; s < 8; s++)
     {
@@ -96,7 +87,6 @@
                                 var c2 = c3;
                                 var r2 = r3;
                             }
-
                             <MudPaper Class="d-flex align-center justify-center mud-width-full py-8">
                                 <MudItem>
                                     <MudText>@containerText</MudText>
@@ -131,7 +121,6 @@
 
 @code {
     private int _activeTabIndex;
-
     readonly DialogOptions _smallWidth = new() { MaxWidth = MaxWidth.Small, FullWidth = true };
     private string _searchString1 = "";
     List<Project> _projects = new();
@@ -152,10 +141,10 @@
         _allProductsList = await ProductController.GetAllProducts();
         AllWeNeed();
 
-        if (_getAllShit.Count != 0)
+        /*if (_getAllShit.Count != 0)
         {
             Console.WriteLine("GET MORE STUFF DUM");
-        }
+        }*/
     }
 
     private void AllWeNeed()
@@ -172,7 +161,6 @@
                 _shitFromProjects.Add(new ProjectProducts { ProductType = product.ProductType, Quantity = product.Quantity });
             }
         }
-
         foreach (var stock in _productTypes.Select(productType => new ProjectProducts() { ProductType = productType }))
         {
             foreach (var product in _allProductsList.Where(product => product.ProductType.Name == stock.ProductType.Name))
@@ -181,7 +169,6 @@
             }
             _allShitWeHave.Add(stock);
         }
-
         foreach (var projectProduct in _shitFromProjects.Where(projectProduct => _allShitWeHave.Find(x => x.ProductType.Name == projectProduct.ProductType.Name)?.Quantity < projectProduct.Quantity))
         {
             _getAllShit.Add(new ProjectProducts { ProductType = projectProduct.ProductType, Quantity = (_allShitWeHave.Find(x => x.ProductType.Name == projectProduct.ProductType.Name)?.Quantity - projectProduct.Quantity) * -1 ?? 0 });
@@ -237,17 +224,14 @@
         var res = await DialogService.ShowAsync<AddToShelf>("Add product to shelf", parameters, _smallWidth);
         var result = await res.Result;
         if (result.Canceled) return;
-
         if (result.Data.GetType() != typeof(Product))
         {
             Snackbar.Add("An error has occurred!", Severity.Error);
             return;
         }
-
         var product = (Product)result.Data;
         Console.WriteLine(product.ProductType.Name + " " + product.Quantity + " " + product.Id + " " + product.ShelfId);
         var compartment = _compartments.FindLast(x => x.CompartmentId == cid);
-
         if (compartment != null)
         {
             compartment.Shelves.Find(x => x.ShelfId == sid).Product = product;
@@ -256,7 +240,6 @@
             Console.WriteLine(updateRes);
             ProductController.UpdateProduct(product);
         }
-
         Snackbar.Add("Successfully added product", Severity.Success);
         StateHasChanged();
     }
@@ -264,23 +247,19 @@
     private async void AddMoreProduct(int sid, int cid)
     {
         var compartment = _compartments.FindLast(x => x.CompartmentId == cid);
-        Product product;
-        product = compartment.Shelves.Find(x => x.ShelfId == sid).Product;
+        var product = compartment.Shelves.Find(x => x.ShelfId == sid).Product;
 
         if (product.Quantity == product.ProductType.MaxCapacity)
         {
             Snackbar.Add("The shelf is already full!", Severity.Error);
             return;
         }
-
         var parameters = new DialogParameters { { "Product", product } };
         var res = await DialogService.ShowAsync<AddMoreToShelf>("Add more product to shelf", parameters, _smallWidth);
         var result = await res.Result;
         if (result.Canceled) return;
-
         var updateRes = await CompartmentController.UpdateCompartment(compartment)!;
         Console.WriteLine(updateRes);
-
         Snackbar.Add("Successfully added product", Severity.Success);
         StateHasChanged();
     }
@@ -306,7 +285,7 @@
 
     private bool FilterFunc1(Product product) => FilterFunc(product, _searchString1);
 
-    private bool FilterFunc(Product product, string searchString)
+    private static bool FilterFunc(Product product, string searchString)
     {
         return string.IsNullOrWhiteSpace(searchString) || product.ProductType.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
     }

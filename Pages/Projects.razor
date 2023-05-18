@@ -43,25 +43,25 @@
             <MudTh>
                 <MudTableSortLabel SortBy="new Func<Project, object>(x => x.Status)">Project Status</MudTableSortLabel>
             </MudTh>
-            <MudTh> Project Information</MudTh>
-            <MudTh> Open Project</MudTh>
-            <MudTh> Delete</MudTh>
-            <MudTh> Project Action</MudTh>
+            <MudTh>Project Information</MudTh>
+            <MudTh>Open Project</MudTh>
+            <MudTh>Delete</MudTh>
+            <MudTh>Project Action</MudTh>
         </HeaderContent>
         <RowTemplate Context="projectContext">
             <MudTd DataLabel="name">@projectContext.Name</MudTd>
             <MudTd DataLabel="location">@projectContext.Location</MudTd>
             <MudTd DataLabel="status">@projectContext.Status</MudTd>
             <MudTd DataLabel="info">
-                <MudIconButton Icon="@Icons.Filled.Info" Color="Color.Info" OnClick="@(() => { Information(projectContext.Id); })"/>
+                <MudIconButton Icon="@Icons.Material.Filled.Info" Color="Color.Info" OnClick="@(() => { Information(projectContext.Id); })"/>
             </MudTd>
             <MudTd DataLabel="draft">
                 <MudTooltip Text="Open Project">
-                    <MudIconButton Icon="@Icons.Filled.Edit" OnClick="@(() => { DraftProject(projectContext.Id); })"/>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="@(() => { DraftProject(projectContext.Id); })"/>
                 </MudTooltip>
             </MudTd>
             <MudTd DataLabel="del">
-                <MudIconButton Icon="@Icons.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProject(projectContext.Id); })"/>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => { DeleteProject(projectContext.Id); })"/>
             </MudTd>
             <MudTd>
                 @if (projectContext.Status.Equals("Draft"))
@@ -101,7 +101,6 @@ else if (_role == "Warehouser")
               RowEditCancel="ResetItemToOriginalValues"
               RowEditPreview="Backup"
               Filter="new Func<Project, bool>(FilterFunc1)">
-
         <ToolBarContent>
             <MudItem xs="6">
                 <MudTextField @bind-Value="_searchString1" Immediate="true" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Style="justify-content: end" MaxLength="45" Clearable/>
@@ -118,15 +117,15 @@ else if (_role == "Warehouser")
             <MudTh>
                 <MudTableSortLabel SortBy="new Func<Project, object>(x => x.Status)">Project Status</MudTableSortLabel>
             </MudTh>
-            <MudTh> Project Information</MudTh>
-            <MudTh> Project Action</MudTh>
+            <MudTh>Project Information</MudTh>
+            <MudTh>Project Action</MudTh>
         </HeaderContent>
         <RowTemplate Context="projectContext">
             <MudTd DataLabel="name">@projectContext.Name</MudTd>
             <MudTd DataLabel="location">@projectContext.Location</MudTd>
             <MudTd DataLabel="status">@projectContext.Status</MudTd>
             <MudTd DataLabel="info">
-                <MudIconButton Icon="@Icons.Filled.Info" Color="Color.Info" OnClick="@(() => { Information(projectContext.Id); })"/>
+                <MudIconButton Icon="@Icons.Material.Filled.Info" Color="Color.Info" OnClick="@(() => { Information(projectContext.Id); })"/>
             </MudTd>
             <MudTd>
                 @if (projectContext.Status.Equals("Draft"))
@@ -164,7 +163,6 @@ else if (_role == "Warehouser")
     private Project _selectedItem;
     private string _searchString1 = "";
     readonly DialogOptions _mediumWidth = new() { MaxWidth = MaxWidth.Medium, FullWidth = true };
-
     protected override async Task OnInitializedAsync()
     {
         _compartments = await CompartmentController.GetAllCompartments();
@@ -187,7 +185,6 @@ else if (_role == "Warehouser")
                 project.Status = "Draft";
             }
         }
-
         if (await SessionStorage.ContainKeyAsync("Role"))
         {
             _role = await SessionStorage.GetItemAsync<string>("Role");
@@ -274,7 +271,6 @@ else if (_role == "Warehouser")
                             Console.WriteLine("Product taken from shelf " + shelf.Id);
                             break;
                         }
-
                         product.Quantity -= shelf.Product.Quantity;
                         ProductController.DeleteProduct(shelf.Product.Id);
                         shelf.Product = new Product();
@@ -295,7 +291,6 @@ else if (_role == "Warehouser")
                 break;
             }
         }
-
         _projects.Find(p => p.Id == index)!.Status = "InProgress";
         ProjectController.UpdateProject(_projects.Find(p => p.Id == index)!);
     }
@@ -358,9 +353,8 @@ else if (_role == "Warehouser")
 
     private bool FilterFunc1(Project project) => FilterFunc(project, _searchString1);
 
-    private bool FilterFunc(Project project, string searchString)
+    private static bool FilterFunc(Project project, string searchString)
     {
         return string.IsNullOrWhiteSpace(searchString) || project.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
     }
-
 }
